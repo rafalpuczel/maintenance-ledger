@@ -22,15 +22,18 @@ hints:
 ## Why this stack
 
 A small agency team shipping a maintenance-report tool in 3 weeks of after-hours
-work needs an agent-friendly starter that already handles shared-credential
-auth, file upload for brand logo, and a PostgreSQL store for projects and
-reports without assembly. 10x-astro-starter is the recommended default for
-`(web, js)` and clears all four agent-friendly gates: TypeScript end-to-end,
-strong conventions, popular in training data, current docs. Supabase covers
-auth, Postgres, and storage out of the box; Astro+React handles the editor UI
-plus server endpoints for save/PDF/send. Cloudflare Pages is the starter
-default and matches the small target_scale; PDF generation on the edge runtime
-will be done with a workerd-compatible library (pdf-lib or @react-pdf/renderer)
-or Cloudflare Browser Rendering — surfaced as a setup decision the
-bootstrapper's instruction file should note. GitHub Actions with
-auto-deploy-on-merge is what the starter ships with.
+work needs an agent-friendly starter that handles file upload for the brand
+logo, a relational store for projects and reports, and deploys cheaply.
+10x-astro-starter is the recommended default for `(web, js)` and clears all
+four agent-friendly gates: TypeScript end-to-end, strong Astro conventions,
+popular in training data, current docs. Auth diverges from the starter's
+shipped Supabase Auth: FR-001's shared single-credential model is implemented
+with a hand-rolled HMAC-signed session cookie against env-provisioned
+`SHARED_USERNAME` / `SHARED_PASSWORD_HASH`, rotated by redeploy — Supabase
+Auth's signup / reset / JWT-refresh machinery is dead weight here. Supabase is
+kept as Postgres + storage, accessed only from Astro server endpoints with the
+service role key. Cloudflare Pages is the starter default and matches the
+small target_scale; PDF generation on the edge runtime uses a workerd-
+compatible library (pdf-lib or @react-pdf/renderer) or Cloudflare Browser
+Rendering. GitHub Actions with auto-deploy-on-merge is what the starter ships
+with.
