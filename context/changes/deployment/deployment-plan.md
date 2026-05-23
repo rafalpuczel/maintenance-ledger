@@ -24,54 +24,33 @@ Risks R1–R8 from `infrastructure.md` are addressed inline (each phase calls ou
 
 One-time external setup. Until every box here is ticked, Phases 0–6 will hit avoidable failures (auth popups, missing project IDs, "permission denied" on `supabase link`, etc.). Order matters: Cloudflare → Supabase → Resend. Re-running any step is safe.
 
-### A. Cloudflare CLI prerequisites — ⬜ Pending
+### A. Cloudflare CLI prerequisites — ✅ Done (2026-05-23)
 
-- [ ] **Node version** ≥ 18 (project pins **22.14.0** in `.nvmrc`). Verify:
-  ```powershell
-  node --version
-  ```
-  Edge case — if you use `nvm-windows`, run `nvm use 22.14.0` and confirm it persists in new terminals. Wrangler's bundled workerd binary downloads on first run (~50 MB); behind a corporate proxy, set `HTTPS_PROXY` *before* the first `wrangler` invocation.
-- [ ] **Wrangler reachable** (already in devDeps, no install needed — call via `npx`):
-  ```powershell
-  npx wrangler --version
-  ```
-  Expected: `4.90.0` or higher. If the project deps aren't installed yet: `npm ci` first.
-- [ ] **Cloudflare account exists** — sign up at `dash.cloudflare.com/sign-up` if not. Free is fine; Workers Paid ($5/mo) is a Phase 5 upgrade decision, not a prerequisite. Record the **Account ID** (dashboard right sidebar, "Account ID" — needed later if you script it into `wrangler.jsonc`).
-- [ ] **Pick an auth mode** — there are two; the project uses **API token** because the agent runs unattended:
-  - **API token (recommended, used by this plan)** — minted in Phase 3, set via Windows `setx` so `wrangler` reads it from the environment without browser interaction. R7 mitigation.
-  - **Browser OAuth (`wrangler login`)** — interactive, opens a browser tab, stores creds in `~/.config/.wrangler/config/default.toml`. Fine for one-off human use but **breaks unattended agent deploys** the moment the token expires. Do not use as the primary path.
-- [ ] **Confirm 2FA is enabled** on the Cloudflare account (Account → Members → 2FA). Tokens minted under a 2FA account have a much smaller blast radius if leaked.
-- [ ] **Mint the API token now** *(this is the Phase 3 minting step pulled forward into prereqs — same instructions, persistence step stays in Phase 3)*:
-  - `dash.cloudflare.com/profile/api-tokens` → **Create Token** → template **"Edit Cloudflare Workers"**
-  - Account resources: **Include → only this account**
-  - Zone resources: **None** (no DNS edits)
-  - Remove from the template if present: anything DNS/Billing/Stream/R2-write you don't actually need
-  - Copy the token to a password manager — Cloudflare won't show it again
-- [ ] **Smoke-test the token** without persisting it yet (one-off, session-scoped):
-  ```powershell
-  $env:CLOUDFLARE_API_TOKEN = "<paste-token>"
-  npx wrangler whoami
-  ```
-  Expected: your email + account ID, no browser popup. If you see *"Authentication error \[code: 10000\]"* the token's scope is wrong — re-mint with the correct template. Close this terminal afterward — the `$env:` value vanishes, which is the right behavior (Phase 3 persists it properly).
+OAuth session logged out, scoped API token minted, smoke-tested.  Token is **not yet persisted** — that's Phase 3's job (`setx` so new terminals see it). Current PowerShell sessions show `wrangler whoami` as *"You are not authenticated"* until then; expected.
+
+- [x] **Node version** ≥ 18 (`.nvmrc` pins `22.14.0`).
+- [x] **Wrangler reachable** — `4.93.1` (update available to `4.94.0`; not blocking).
+- [x] **Cloudflare account** — `rpuczel@gmail.com`, ID `cb3c1f3a9930d60a8d18a74836216769`.
+- [x] **2FA enabled.**
+- [x] **OAuth session logged out** (`wrangler logout`).
+- [x] **Scoped API token minted** ("Edit Cloudflare Workers" template, account-scoped, no DNS / billing).
+- [x] **Smoke test passed** (token returned the account info and Workers-only permission list when injected via `$env:` in a one-off terminal).
 
 ### B. Supabase prerequisites — ⬜ Pending
 
-The project uses Supabase as Postgres + Storage, accessed from Workers via `@supabase/supabase-js` over HTTPS (R4: never the direct `pg` driver). Decide once: **cloud-only**, **local-only**, or **hybrid** (cloud for prod, local for dev). Hybrid is the recommended path — the same one AGENTS.md (`Local Supabase: npx supabase start`) already assumes.
+The project uses Supabase as Postgres + Storage, accessed from Workers via `@supabase/supabase-js` over HTTPS (R4: never the direct `pg` driver). **Topology: hybrid** (session decision) — local Docker Supabase for `npm run dev`, separate cloud project for production. Matches AGENTS.md line 36 default; catches env-specific bugs cheaply; dev mistakes can't hit the prod database.
 
-- [ ] **Pick the topology**:
-  - **Hybrid (recommended)** — local Supabase via Docker for `npm run dev` + cloud project for production. Catches environment-specific bugs cheaply.
-  - **Cloud-only** — single Supabase project, same instance for dev and prod. Simplest but every dev mistake hits the prod database; only acceptable for a true solo MVP with no real data yet.
-  - **Local-only** — fine for prototyping; can't ship since the deployed Worker can't reach `localhost`.
+- [x] **Topology decided: hybrid** (local Docker for dev, cloud for prod).
 - [ ] **Cloud project — create** at `app.supabase.com/projects` → **New project**:
   - Organization: existing or new
   - Name: `maintenance-ledger`
   - Database password: generate via Supabase's button, save to password manager (recovery only — the app uses the service-role key, not this password)
   - Region: pick the one closest to your Workers default (Cloudflare's edge means region matters less for read latency than for write round-trips; West EU / East US are safe defaults)
   - Wait ~2 min for provisioning
-- [ ] **Cloud project — grab credentials** from Settings → API:
-  - **Project URL** (e.g. `https://abcd1234.supabase.co`) → will become `SUPABASE_URL`
-  - **service_role secret** → will become `SUPABASE_SERVICE_ROLE_KEY` (this bypasses RLS — Worker-only, never bundled to the client)
-  - **anon public key** → only needed if the client-side React code ever talks directly to Supabase (PRD doesn't require this for MVP; skip unless used)
+- [ ] **Cloud project — grab credentials** from Settings → API. **Use the new key system** (`sb_publishable_...` / `sb_secret_...`), not legacy `anon` / `service_role` — Supabase deprecated the legacy pair in July 2025 (individually revocable, multiple secret keys per project for zero-downtime rotation, no JWT-signing-secret coupling). If the dashboard only shows legacy keys, click **"Migrate API keys"** to enable the new pair (or POST to `/v1/projects/{ref}/api-keys` per the platform docs).
+  - **Project URL** (e.g. `https://abcd1234.supabase.co`) → becomes `SUPABASE_URL`
+  - **Secret key** (`sb_secret_...`) → becomes `SUPABASE_SECRET_KEY` (bypasses RLS — Worker-only, never bundled to the client)
+  - **Publishable key** (`sb_publishable_...`) → becomes `SUPABASE_PUBLISHABLE_KEY` only if the client-side React code ever talks directly to Supabase. PRD doesn't require client-side Supabase access for the MVP; skip provisioning unless/until needed.
   - Save all to password manager — do not paste into chat
 - [ ] **Cloud project — note the Project Ref** (Settings → General → "Reference ID", a short slug like `abcd1234`). Used by `supabase link`.
 - [ ] **Supabase CLI** (already in devDeps as `supabase@^2.23.4` — no install needed):
@@ -90,15 +69,16 @@ The project uses Supabase as Postgres + Storage, accessed from Workers via `@sup
   ```
   Will prompt for the database password from project creation. Sets `supabase/config.toml` `project_id`.
   Edge case — if you see *"failed to connect: dial tcp ... i/o timeout"*, your network blocks port 5432 to Supabase. Use Supabase's pooler endpoint (port 6543) by editing `supabase/config.toml`, or switch networks.
-- [ ] **Local Supabase (only if hybrid/local topology)** — Docker Desktop must be running, ~7 GB RAM allocated (Docker settings → Resources):
+- [ ] **Start local Supabase via Docker** — Docker Desktop must be running, ~7 GB RAM allocated (Docker settings → Resources):
   ```powershell
   npx supabase start
   ```
-  First run pulls ~5 GB of images (~10 min on a fast connection). On success it prints local URLs and keys — copy `API URL`, `anon key`, `service_role key` into `.dev.vars` (Phase 2). To shut down later: `npx supabase stop`.
+  First run pulls ~5 GB of images (~10 min on a fast connection). On success it prints local URLs and keys — copy `API URL` and `service_role key` into `.dev.vars` (Phase 2). To shut down later: `npx supabase stop`.
   Edge cases:
-  - *"Cannot connect to the Docker daemon"* — Docker Desktop isn't running or your user isn't in the `docker-users` group on Windows
-  - Port conflicts (54321, 54322, 54323) — `npx supabase stop --no-backup` then `npx supabase start`; if persistent, change ports in `supabase/config.toml`
+  - *"Cannot connect to the Docker daemon"* — Docker Desktop isn't running, or your user isn't in the `docker-users` group on Windows
+  - Port conflicts (54321/54322/54323) — `npx supabase stop --no-backup` then `npx supabase start`; if persistent, change ports in `supabase/config.toml`
   - WSL2 backend recommended over Hyper-V on Windows for memory efficiency
+  - Local CLI still emits legacy JWT-based `anon`/`service_role` keys (not `sb_publishable_/sb_secret_` yet) — that's expected; `.dev.vars` uses the legacy local key for dev, prod uses the new `sb_secret_...` from the cloud project
 - [ ] **Confirm `supabase/migrations/` exists** (AGENTS.md says it should). If empty, that's fine — migrations land here in feature work. Schema design itself is out of scope for this deploy plan.
 
 ### C. Resend (email) prerequisites — ⬜ Pending
@@ -143,6 +123,7 @@ Stop the agent reading stale "Pages" hints on future sessions.
   - **Deploy via `wrangler deploy`** (Workers Static Assets). NEVER `wrangler pages deploy` — `@astrojs/cloudflare` v13 removed Pages support.
   - **PDF rendering uses FormePDF** (workerd-safe, JSX/React API). `@react-pdf/renderer` is blocked on workerd (yoga-layout WASM). `@pdf-lib/fontkit` does not bundle on Workers (workers-sdk#8140) — if you ever fall back to `pdf-lib`, you're locked to the 14 standard fonts.
   - **Supabase from Workers = `@supabase/supabase-js` over HTTP/PostgREST.** Never import `pg` from a Worker. Migrations and seed scripts run from a local Node process against the Supabase host directly.
+  - **Supabase keys = `sb_publishable_...` / `sb_secret_...`** (new system, July 2025+). Never use legacy `anon` / `service_role` for new code. Server-side (Worker) uses `SUPABASE_SECRET_KEY`; client-side (only if needed) uses `SUPABASE_PUBLISHABLE_KEY`.
   - **CPU budget**: Workers free tier is 10 ms/req. PDF generation will push past this on real-shaped reports — plan to upgrade to Workers Paid ($5/mo, 30s/req) at the first p95 timeout. Watch via `wrangler tail` + observability dashboard.
   ```
 - [ ] **Verify** `AGENTS.md` line 3 (`deployed to Cloudflare Workers via @astrojs/cloudflare`) and line 37 (`npx wrangler deploy`) — already correct, no edit needed.
@@ -154,12 +135,12 @@ Stop the agent reading stale "Pages" hints on future sessions.
 
 Land all dependency/config changes locally before touching production.
 
-- [ ] **Edit** `astro.config.mjs` env schema. Current block (lines 17–22) only declares `SUPABASE_URL` and `SUPABASE_KEY` as optional. Replace with the full surface, marking all six as `access: "secret"`, required where appropriate:
+- [ ] **Edit** `astro.config.mjs` env schema. Current block (lines 17–22) only declares `SUPABASE_URL` and `SUPABASE_KEY` as optional. Replace with the full surface, marking all six as `access: "secret"`:
   ```ts
   env: {
     schema: {
       SUPABASE_URL: envField.string({ context: "server", access: "secret" }),
-      SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret" }),
+      SUPABASE_SECRET_KEY: envField.string({ context: "server", access: "secret" }),
       SHARED_USERNAME: envField.string({ context: "server", access: "secret" }),
       SHARED_PASSWORD_HASH: envField.string({ context: "server", access: "secret" }),
       SESSION_HMAC_KEY: envField.string({ context: "server", access: "secret" }),
@@ -167,7 +148,7 @@ Land all dependency/config changes locally before touching production.
     },
   },
   ```
-  **Naming alignment note:** AGENTS.md line 37 and existing code may reference `SUPABASE_KEY`. Infra doc uses `SUPABASE_SERVICE_ROLE_KEY` (explicit, less ambiguous). Decide once: rename everywhere to `SUPABASE_SERVICE_ROLE_KEY` (recommended), or keep `SUPABASE_KEY` and update infra. If renaming, grep `src/` for `SUPABASE_KEY` and update; also update AGENTS.md line 37.
+  **Naming alignment note:** existing code and AGENTS.md (line 37) reference legacy `SUPABASE_KEY`. The plan adopts Supabase's current recommended naming: `SUPABASE_SECRET_KEY` (matches the `sb_secret_...` key prefix). Rename everywhere: grep `src/` for `SUPABASE_KEY` and replace with `SUPABASE_SECRET_KEY`; update AGENTS.md line 37; update `infrastructure.md` references from `SUPABASE_SERVICE_ROLE_KEY` to `SUPABASE_SECRET_KEY` (the infra doc was written before the July 2025 Supabase key migration).
 - [ ] **Bump** `wrangler.jsonc` `compatibility_date` from `2026-05-08` to `2026-05-23` (matches infra research date; picks up any workerd fixes shipped since 5-08).
 - [ ] **Optionally** update `wrangler.jsonc` `name` if Phase 0 chose to rename (`10x-astro-starter` → `maintenance-ledger`). Affects the deploy subdomain.
 - [ ] **Install** runtime deps:
@@ -178,12 +159,13 @@ Land all dependency/config changes locally before touching production.
 - [ ] **Create `.dev.vars`** at repo root (gitignored — verify with `git check-ignore .dev.vars`):
   ```
   SUPABASE_URL=...
-  SUPABASE_SERVICE_ROLE_KEY=...
+  SUPABASE_SECRET_KEY=sb_secret_...
   SHARED_USERNAME=admin
   SHARED_PASSWORD_HASH=...
   SESSION_HMAC_KEY=...
   RESEND_API_KEY=...
   ```
+  For local dev with `npx supabase start`, paste the local instance's `service_role` key here — the local CLI doesn't yet emit `sb_secret_...` keys (it still uses legacy JWT keys). Production uses the new `sb_secret_...` from the cloud project's API page.
   Use real Supabase credentials (project already exists per Phase 0); placeholders are fine for `SHARED_*` and `RESEND_API_KEY` in dev.
 - [ ] **Run** `npx astro sync` then `npm run dev`. Expected: workerd boots, env schema validates, no missing-secret errors. If `astro sync` fails on the new env fields, the schema syntax is wrong — fix before continuing.
 - [ ] **Run** `npm run lint` and `npm run build` to confirm no type/build regressions from the env schema change.
@@ -221,7 +203,7 @@ Each `wrangler secret put` prompts for the value on stdin — paste, hit Enter, 
 Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached to. If you renamed in Phase 2, this is `maintenance-ledger`; otherwise `10x-astro-starter`.
 
 - [ ] `wrangler secret put SUPABASE_URL` (paste Supabase project URL)
-- [ ] `wrangler secret put SUPABASE_SERVICE_ROLE_KEY` (paste service-role key from Supabase dashboard → Settings → API)
+- [ ] `wrangler secret put SUPABASE_SECRET_KEY` (paste the `sb_secret_...` key from Supabase dashboard → Settings → API → **new** keys section)
 - [ ] `wrangler secret put SHARED_USERNAME` (paste the chosen username, e.g. `admin`)
 - [ ] `wrangler secret put SHARED_PASSWORD_HASH` (paste the bcrypt/argon2 hash generated in Phase 0)
 - [ ] `wrangler secret put SESSION_HMAC_KEY` (paste the base64 random key from Phase 0)
