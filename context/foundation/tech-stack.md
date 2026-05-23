@@ -5,7 +5,7 @@ project_name: maintenance-ledger
 hints:
   language_family: js
   team_size: solo
-  deployment_target: cloudflare-pages
+  deployment_target: cloudflare-workers
   ci_provider: github-actions
   ci_default_flow: auto-deploy-on-merge
   bootstrapper_confidence: first-class
@@ -32,8 +32,10 @@ with a hand-rolled HMAC-signed session cookie against env-provisioned
 `SHARED_USERNAME` / `SHARED_PASSWORD_HASH`, rotated by redeploy — Supabase
 Auth's signup / reset / JWT-refresh machinery is dead weight here. Supabase is
 kept as Postgres + storage, accessed only from Astro server endpoints with the
-service role key. Cloudflare Pages is the starter default and matches the
-small target_scale; PDF generation on the edge runtime uses a workerd-
-compatible library (pdf-lib or @react-pdf/renderer) or Cloudflare Browser
-Rendering. GitHub Actions with auto-deploy-on-merge is what the starter ships
-with.
+service role key. Cloudflare Workers (Static Assets) — see `infrastructure.md` for the
+Pages-vs-Workers analysis; `@astrojs/cloudflare` v13+ dropped Pages support so
+deploys go through `wrangler deploy`, not `wrangler pages deploy`. Matches the
+small target_scale; PDF generation on the edge runtime uses FormePDF (chosen
+2026-05-23 per `infrastructure.md` Risk R1 — `@react-pdf/renderer` is blocked
+on workerd by yoga-layout WASM). GitHub Actions with auto-deploy-on-merge is
+what the starter ships with.

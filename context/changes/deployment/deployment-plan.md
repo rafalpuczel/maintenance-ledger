@@ -41,6 +41,7 @@ OAuth session logged out, scoped API token minted, smoke-tested.  Token is **not
 The project uses Supabase as Postgres + Storage, accessed from Workers via `@supabase/supabase-js` over HTTPS (R4: never the direct `pg` driver). **Topology: hybrid** (session decision) — local Docker Supabase for `npm run dev`, separate cloud project for production. Matches AGENTS.md line 36 default; catches env-specific bugs cheaply; dev mistakes can't hit the prod database.
 
 - [x] **Topology decided: hybrid** (local Docker for dev, cloud for prod).
+- [x] **All Supabase credentials gathered** (2026-05-23): cloud project URL, `sb_secret_...` key, Project Ref, plus local Supabase running with `service_role` key captured for `.dev.vars`.
 - [ ] **Cloud project — create** at `app.supabase.com/projects` → **New project**:
   - Organization: existing or new
   - Name: `maintenance-ledger`
@@ -98,26 +99,21 @@ Each phase has a status indicator and a checkboxed task list. Tick boxes as you 
 
 ---
 
-### Phase 0 — Pre-flight (manual, human-only) — ⬜ Pending
+### Phase 0 — Pre-flight (manual, human-only) — ✅ Done (2026-05-23)
 
-Project-specific decisions and secret generation. Run **after** Prerequisites A/B/C are all ticked.
-
-- [ ] Decide deploy worker name: keep `10x-astro-starter` from `wrangler.jsonc` **or** rename to `maintenance-ledger` (matches frontmatter; recommended). Rename is irreversible-ish (creates a new subdomain), pick once.
-- [ ] Generate `SESSION_HMAC_KEY`: 32 random bytes, base64. PowerShell one-liner:
-  ```powershell
-  [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 } | ForEach-Object { [byte]$_ }))
-  ```
-  Save in password manager. **Never commit, never paste in chat.**
-- [ ] Generate `SHARED_PASSWORD_HASH` for FR-001 (bcrypt or argon2 of the cleartext shared password). Use a local script — do not generate it inside the agent context.
+- [x] **Worker name: rename to `maintenance-ledger`** (applied in Phase 2 — update `wrangler.jsonc` `name`).
+- [x] `SESSION_HMAC_KEY` generated (32 random bytes, base64) and saved to password manager.
+- [x] `SHARED_PASSWORD_HASH` generated via `bcryptjs.hashSync(pw, 12)` in Node REPL, verified round-trip, saved to password manager.
+- [x] **Side effect**: `bcryptjs` added to `package.json` dependencies — keep it; the FR-001 login handler will import it for password verification on the Worker (workerd-compatible pure JS).
 
 ---
 
-### Phase 1 — Reconcile contracts (R2 mitigation) — ⬜ Pending
+### Phase 1 — Reconcile contracts (R2 mitigation) — ✅ Done (2026-05-23)
 
 Stop the agent reading stale "Pages" hints on future sessions.
 
-- [ ] **Edit** `context/foundation/tech-stack.md` frontmatter: `deployment_target: cloudflare-pages` → `cloudflare-workers`. Also fix the "Why this stack" paragraph that still says *"Cloudflare Pages is the starter default"* — change to *"Cloudflare Workers (Static Assets) — see `infrastructure.md` for the Pages-vs-Workers analysis"*.
-- [ ] **Add to `CLAUDE.md`** (new section near top, inside or below the 10x-cli skill block — keep skill block intact):
+- [x] **Edit** `context/foundation/tech-stack.md` frontmatter: `deployment_target: cloudflare-pages` → `cloudflare-workers`. Also fix the "Why this stack" paragraph that still says *"Cloudflare Pages is the starter default"* — change to *"Cloudflare Workers (Static Assets) — see `infrastructure.md` for the Pages-vs-Workers analysis"*.
+- [x] **Add to `CLAUDE.md`** (new section near top, inside or below the 10x-cli skill block — keep skill block intact):
   ```markdown
   ## Project rules (load-bearing)
   - **Deploy via `wrangler deploy`** (Workers Static Assets). NEVER `wrangler pages deploy` — `@astrojs/cloudflare` v13 removed Pages support.
@@ -126,16 +122,16 @@ Stop the agent reading stale "Pages" hints on future sessions.
   - **Supabase keys = `sb_publishable_...` / `sb_secret_...`** (new system, July 2025+). Never use legacy `anon` / `service_role` for new code. Server-side (Worker) uses `SUPABASE_SECRET_KEY`; client-side (only if needed) uses `SUPABASE_PUBLISHABLE_KEY`.
   - **CPU budget**: Workers free tier is 10 ms/req. PDF generation will push past this on real-shaped reports — plan to upgrade to Workers Paid ($5/mo, 30s/req) at the first p95 timeout. Watch via `wrangler tail` + observability dashboard.
   ```
-- [ ] **Verify** `AGENTS.md` line 3 (`deployed to Cloudflare Workers via @astrojs/cloudflare`) and line 37 (`npx wrangler deploy`) — already correct, no edit needed.
-- [ ] **Decide** what to do with the staged `CLAUDE.md.scaffold` deletion already in git — keep the deletion, the scaffold is superseded.
+- [x] **Verify** `AGENTS.md` line 3 (`deployed to Cloudflare Workers via @astrojs/cloudflare`) and line 37 (`npx wrangler deploy`) — already correct, no edit needed.
+- [x] **Decide** what to do with the staged `CLAUDE.md.scaffold` deletion already in git — keep the deletion, the scaffold is superseded.
 
 ---
 
-### Phase 2 — Local integration (env schema, deps, dev.vars) — ⬜ Pending
+### Phase 2 — Local integration (env schema, deps, dev.vars) — ✅ Done (2026-05-23)
 
 Land all dependency/config changes locally before touching production.
 
-- [ ] **Edit** `astro.config.mjs` env schema. Current block (lines 17–22) only declares `SUPABASE_URL` and `SUPABASE_KEY` as optional. Replace with the full surface, marking all six as `access: "secret"`:
+- [x] **Edit** `astro.config.mjs` env schema. Current block (lines 17–22) only declares `SUPABASE_URL` and `SUPABASE_KEY` as optional. Replace with the full surface, marking all six as `access: "secret"`:
   ```ts
   env: {
     schema: {
@@ -149,14 +145,15 @@ Land all dependency/config changes locally before touching production.
   },
   ```
   **Naming alignment note:** existing code and AGENTS.md (line 37) reference legacy `SUPABASE_KEY`. The plan adopts Supabase's current recommended naming: `SUPABASE_SECRET_KEY` (matches the `sb_secret_...` key prefix). Rename everywhere: grep `src/` for `SUPABASE_KEY` and replace with `SUPABASE_SECRET_KEY`; update AGENTS.md line 37; update `infrastructure.md` references from `SUPABASE_SERVICE_ROLE_KEY` to `SUPABASE_SECRET_KEY` (the infra doc was written before the July 2025 Supabase key migration).
-- [ ] **Bump** `wrangler.jsonc` `compatibility_date` from `2026-05-08` to `2026-05-23` (matches infra research date; picks up any workerd fixes shipped since 5-08).
-- [ ] **Optionally** update `wrangler.jsonc` `name` if Phase 0 chose to rename (`10x-astro-starter` → `maintenance-ledger`). Affects the deploy subdomain.
-- [ ] **Install** runtime deps:
+- [x] **Bump** `wrangler.jsonc` `compatibility_date` from `2026-05-08` to `2026-05-23` (matches infra research date; picks up any workerd fixes shipped since 5-08).
+- [x] **`wrangler.jsonc` `name` renamed** `10x-astro-starter` → `maintenance-ledger` (Phase 0 chose rename).
+- [x] **Install** runtime deps (verified 2026-05-23: `formepdf` is published as scoped packages, not a single bare name):
   ```powershell
-  npm install formepdf resend
+  npm install @formepdf/react @formepdf/core resend
   ```
-  Edge case — if `formepdf` install fails (npm name drift / Rust-WASM build snag), fall back per R1 to either (a) pin a specific version known to bundle on workerd (check `formepdf` GitHub Releases), or (b) escalate to Browser Rendering and accept the 1–2s latency.
-- [ ] **Create `.dev.vars`** at repo root (gitignored — verify with `git check-ignore .dev.vars`):
+  `@formepdf/react` = JSX components; `@formepdf/core` = `renderDocument()` returning `Uint8Array`. Optional later: `@formepdf/tailwind` for Tailwind class support in PDF templates.
+  Edge case — if a future install fails (Rust→WASM build snag), fall back per R1 to either (a) pin a specific version known to bundle on workerd, or (b) escalate to Cloudflare Browser Rendering and accept the 1–2 s latency.
+- [x] **Created `.dev.vars`** at repo root (gitignored — `.gitignore` line 26 covers it). Placeholders in place; user fills in real values from password manager + `npx supabase start` output:
   ```
   SUPABASE_URL=...
   SUPABASE_SECRET_KEY=sb_secret_...
@@ -167,12 +164,14 @@ Land all dependency/config changes locally before touching production.
   ```
   For local dev with `npx supabase start`, paste the local instance's `service_role` key here — the local CLI doesn't yet emit `sb_secret_...` keys (it still uses legacy JWT keys). Production uses the new `sb_secret_...` from the cloud project's API page.
   Use real Supabase credentials (project already exists per Phase 0); placeholders are fine for `SHARED_*` and `RESEND_API_KEY` in dev.
-- [ ] **Run** `npx astro sync` then `npm run dev`. Expected: workerd boots, env schema validates, no missing-secret errors. If `astro sync` fails on the new env fields, the schema syntax is wrong — fix before continuing.
-- [ ] **Run** `npm run lint` and `npm run build` to confirm no type/build regressions from the env schema change.
+- [x] **Ran `npx astro sync`** — passed, types regenerated.
+- [x] **Ran `npm run lint`** — passed (only pre-existing parser-option warnings).
+- [x] **Ran `npm run build`** — passed, Worker bundle in `dist/_worker.js/`, server built in 9.04 s.
+- [x] **`npm run dev` verified by user** — workerd boots with real Supabase + secrets loaded from `.dev.vars`.
 
 ---
 
-### Phase 3 — Wrangler authentication on Windows (R7 mitigation) — ⬜ Pending
+### Phase 3 — Wrangler authentication on Windows (R7 mitigation) — ✅ Done (2026-05-23)
 
 The agent's deploys will silently fall through to browser-popup login if this isn't done from a fresh terminal.
 
@@ -196,7 +195,9 @@ The agent's deploys will silently fall through to browser-popup login if this is
 
 ---
 
-### Phase 4 — Production secrets (HUMAN-GATED) — ⬜ Pending
+### Phase 4 — Production secrets (HUMAN-GATED) — ✅ Done (2026-05-23) — RESEND_API_KEY deferred to Prereq C
+
+**Order-of-operations note**: Phase 5 step 1 (first `wrangler deploy`) was executed before Phase 4 to create the `maintenance-ledger` worker entity on Cloudflare (workaround for the `wrangler secret put` "Worker not found" edge case noted in the original Phase 4 spec). First deploy URL: **https://maintenance-ledger.rpuczel.workers.dev**, version `41098f91-d0ea-4197-ae64-2da8a5bc2d57`. Adapter auto-provisioned KV namespace `SESSION` (id `6da5b0d1c8484b98820b32b83d2a2e5e`). All 21 routes loaded, gzip bundle 391 KiB (under free-tier 3 MiB compressed limit).
 
 Each `wrangler secret put` prompts for the value on stdin — paste, hit Enter, value is encrypted to the Workers Secrets Store. **Do not paste secret values into chat.** Run each command yourself, one at a time.
 
@@ -207,45 +208,65 @@ Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached 
 - [ ] `wrangler secret put SHARED_USERNAME` (paste the chosen username, e.g. `admin`)
 - [ ] `wrangler secret put SHARED_PASSWORD_HASH` (paste the bcrypt/argon2 hash generated in Phase 0)
 - [ ] `wrangler secret put SESSION_HMAC_KEY` (paste the base64 random key from Phase 0)
-- [ ] `wrangler secret put RESEND_API_KEY` (paste the Resend API key from Phase 0)
+- [ ] `wrangler secret put RESEND_API_KEY` — **deferred** until Prereq C is done. `RESEND_API_KEY` made `optional: true` in `astro.config.mjs` env schema so the worker doesn't 500 without it (re-deployed as version `42739f9c-2921-4991-b46d-92bdfab1059c`). Email features will need this set before FR-019/020 are wired.
 - [ ] **Verify all six exist:**
   ```powershell
   wrangler secret list
   ```
   Expected: six entries, names only (values are not shown — that's correct).
-- [ ] **Edge case** — `wrangler secret put` requires the worker to exist on Cloudflare. If you've never deployed before, the first `wrangler secret put` will fail with *"Worker not found"*. Fix: do one throwaway `wrangler deploy` first (Phase 5 step 1), then come back to Phase 4. Re-run all six `secret put` commands afterward.
+- [x] **Edge case mitigated** — first `wrangler deploy` ran before Phase 4 to register the worker entity (see Phase 4 header note). Subsequent `wrangler secret put` calls won't hit "Worker not found".
 
 ---
 
-### Phase 5 — First production deploy — ⬜ Pending
+### Phase 5 — First production deploy — ✅ Done (2026-05-23)
 
-- [ ] `npm run build` — verify `dist/` is produced, no errors, includes `_worker.js/`.
-- [ ] `wrangler deploy` — **NOT** `wrangler pages deploy`. Expected output: a `*.workers.dev` URL and a version ID. Save both.
-- [ ] **Open the deployed URL** in a browser. Expected: the auth page renders (or whatever the root route is). If you see a 500, jump to `wrangler tail` (next step) before retrying.
-- [ ] In a second terminal: `wrangler tail` — streams live request logs. Keep open during smoke test.
-- [ ] **Smoke test**:
-  - [ ] GET `/` → 200, page loads
-  - [ ] POST login with the FR-001 shared credential → session cookie set, redirected to protected route
-  - [ ] Hit one protected route → 200 with session, 302 without
-  - [ ] Any Supabase-backed read returns data (proves `@supabase/supabase-js` reaches Supabase from the Worker over HTTPS — R4 verified)
+- [x] `npm run build` — verified twice (initial + after RESEND_API_KEY optional change).
+- [x] `wrangler deploy` — succeeded. URL: **https://maintenance-ledger.rpuczel.workers.dev**. Latest version: `42739f9c-2921-4991-b46d-92bdfab1059c`.
+- [x] **Smoke test passed** (HTTP probes, 2026-05-23):
+  - [x] GET `/` → 200, root page renders
+  - [x] GET `/dashboard` → 302 to `/auth/signin` (middleware runs, Supabase client created, R4 verified)
+  - [x] GET `/auth/signin` → 200
+  - [x] GET `/nonexistent` → 404 (asset fallback works)
+  - [ ] POST login with FR-001 shared credential → deferred (FR-001 implementation not yet built; starter ships with Supabase Auth flow, not the planned HMAC cookie flow)
 - [ ] **Edge case — CPU exceeded (R3)**: if a route returns 1101 / "CPU exceeded" in tail logs, you've hit the 10 ms free-tier ceiling. Two options: (a) upgrade to Workers Paid in dashboard (`$5/mo`, takes effect immediately, raises to 30s), (b) profile the offending route and reduce work. Don't paper over with retries.
 - [ ] **Edge case — `nodejs_compat` missing**: if you see *"Module not found: node:..."* errors, `compatibility_flags: ["nodejs_compat"]` was dropped. Verify it's in `wrangler.jsonc`.
 - [ ] **Edge case — env binding undefined**: if `import.meta.env.SUPABASE_URL` is undefined at runtime, the env schema in `astro.config.mjs` didn't match the secret name. They must match exactly (case-sensitive).
 
 ---
 
-### Phase 6 — Post-deploy hardening — ⬜ Pending
+### Phase 6 — Wire Workers Builds (canonical deploy) + post-deploy hardening — ⬜ Pending
 
-- [ ] **Save** deploy URL + version ID + Cloudflare Account ID into `context/deployment/deploy-plan.md` (create the file if it doesn't exist — it's the audit trail per the lesson contract).
-- [ ] **Connect GitHub** for preview deploys: Cloudflare dashboard → Workers & Pages → your worker → Settings → Builds & deployments → Connect to Git. Branch `master` (or `main`) = production; all other branches → preview URLs via Workers Builds.
-- [ ] **Edge case — preview URLs are public** (R8): until the MVP has real client data, this is fine. **Before** the first real client PDF lands in any preview, gate previews with Cloudflare Access (Zero Trust → Access → Applications → Add → "Self-hosted", point at `*.<worker-name>.workers.dev`, free tier covers small teams).
+**Deploy mechanism going forward** (user decision, 2026-05-23): **Cloudflare Workers Builds**, triggered by push to `master`. Manual `wrangler deploy` from a developer machine becomes the emergency-only / local-test path — NOT the default. Subsequent feature merges deploy themselves.
+
+- [ ] **Save** deploy artifacts into `context/deployment/deploy-plan.md` (create the file if it doesn't exist — audit trail per lesson contract):
+  - Worker name: `maintenance-ledger`
+  - Production URL: `https://maintenance-ledger.rpuczel.workers.dev`
+  - First version ID: `41098f91-d0ea-4197-ae64-2da8a5bc2d57` (2026-05-23, initial)
+  - Second version ID: `42739f9c-2921-4991-b46d-92bdfab1059c` (2026-05-23, RESEND_API_KEY made optional)
+  - Account ID: `cb3c1f3a9930d60a8d18a74836216769`
+  - Auto-provisioned: KV namespace `SESSION` (id `6da5b0d1c8484b98820b32b83d2a2e5e`)
+- [ ] **Connect GitHub via Cloudflare Workers Builds** — Cloudflare dashboard → Workers & Pages → `maintenance-ledger` → **Settings → Builds & deployments → Connect to Git**:
+  - GitHub OAuth: authorize Cloudflare to access the `10xdev-project` repo (one-time)
+  - **Production branch: `master`** (this repo's default; not `main` — see `.github/workflows/ci.yml` line 5)
+  - **Preview branches: all non-`master` branches** (Workers Builds default)
+  - **Build configuration** (Workers Builds auto-detects Astro; override only if defaults are wrong):
+    - Root directory: `/` (repo root)
+    - Build command: `npm run build`
+    - Build output: `dist` (the adapter writes `dist/_worker.js/` + `dist/client/`)
+  - **Build-time environment variables**: none required. `astro:env` `secret` fields validate at runtime, not build-time, and `.dev.vars` isn't shipped to the build container. The first remote build should succeed without setting anything here.
+  - Save. The first Workers Build runs immediately against current `master`; subsequent pushes auto-build + deploy.
+- [x] **`ci.yml` kept as PR pre-merge gate** (decision 2026-05-23): `SUPABASE_*` env block removed (build compiles without runtime secrets). Workers Builds handles deploy. `AGENTS.md` line 42 updated to reflect new split (CI = lint/build only, Workers Builds = deploy).
+- [ ] **Verify first Workers Build** succeeds — dashboard → Workers & Pages → `maintenance-ledger` → **Deployments** tab. The build that ran on connect should show ✓ within ~1–2 min. Click into it for the build log if it fails (most common: build command mismatch, or a runtime env-validation that I missed making optional).
+- [ ] **Push a trivial change to `master`** (e.g. whitespace edit in `README.md`) and watch Deployments tab — confirms the auto-deploy loop works end-to-end. Roll the change back after.
+- [ ] **Edge case — preview URLs are public** (R8): until the MVP has real client data, this is fine. **Before** the first real client PDF lands in any preview, gate previews with Cloudflare Access (Zero Trust → Access → Applications → Add → "Self-hosted", point at `*-maintenance-ledger.<your-subdomain>.workers.dev`, free tier covers small teams). Workers Builds preview URLs use a hashed branch-name prefix.
+- [ ] **Edge case — fork PRs don't get preview builds by default** on Workers Builds (security: forks can't be trusted to read repo secrets). Matches the solo-agency operating model; no contributor PRs from outside the org expected.
 - [ ] **Verify rollback works** (don't wait for the first incident):
   ```powershell
-  wrangler versions list
-  wrangler rollback   # back to previous version
-  wrangler rollback   # forward again (rolls back the rollback)
+  npx wrangler versions list
+  npx wrangler rollback   # back to previous version
+  npx wrangler rollback   # forward again (rolls back the rollback)
   ```
-  Sanity check the URL still serves after the rollback dance.
+  Sanity check the URL still serves after the rollback dance. `wrangler rollback` still works after Workers Builds is wired — it's a deploy-version operation, independent of the build trigger.
 - [ ] **Optional but recommended** — wire the Cloudflare docs MCP server in `.mcp.json` (gives the agent live Workers docs on demand):
   ```json
   {

@@ -34,9 +34,9 @@
 
 - Node v22.14.0 (`@.nvmrc`).
 - Local Supabase: `npx supabase start` (Docker, ~7 GB RAM); copy printed credentials into `.env` and `.dev.vars`.
-- Deploy: `npx wrangler deploy`; set `SUPABASE_URL` / `SUPABASE_KEY` via `npx wrangler secret put` or the Cloudflare dashboard.
+- Deploy: `npx wrangler deploy`; set `SUPABASE_URL` / `SUPABASE_SECRET_KEY` (the `sb_secret_...` key from the cloud project) via `npx wrangler secret put` or the Cloudflare dashboard.
 
 ## Commit & PR Guidelines
 
 - Short, imperative, sentence-case subject (history: *"Bootstrap 10x-astro-starter + apply non-breaking npm audit fixes"*) — no Conventional Commit prefixes.
-- PR target is `master`. CI runs `npm ci`, `npx astro sync`, `npm run lint`, `npm run build` with `SUPABASE_URL` / `SUPABASE_KEY` repository secrets; all four steps must pass.
+- PR target is `master`. GitHub Actions CI (`.github/workflows/ci.yml`) runs `npm ci`, `npx astro sync`, `npm run lint`, `npm run build` as a pre-merge gate — no repo secrets needed (build doesn't validate runtime secrets). Production deploy is handled by **Cloudflare Workers Builds** on push to `master`; manual `npx wrangler deploy` is the emergency/local-test fallback only.
