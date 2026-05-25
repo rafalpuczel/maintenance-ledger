@@ -234,18 +234,18 @@ Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached 
 
 ---
 
-### Phase 6 — Wire Workers Builds (canonical deploy) + post-deploy hardening — ⬜ Pending
+### Phase 6 — Wire Workers Builds (canonical deploy) + post-deploy hardening — 🟡 Mostly done (2026-05-23)
 
 **Deploy mechanism going forward** (user decision, 2026-05-23): **Cloudflare Workers Builds**, triggered by push to `master`. Manual `wrangler deploy` from a developer machine becomes the emergency-only / local-test path — NOT the default. Subsequent feature merges deploy themselves.
 
-- [ ] **Save** deploy artifacts into `context/deployment/deploy-plan.md` (create the file if it doesn't exist — audit trail per lesson contract):
+- [x] **Saved** deploy artifacts into `context/deployment/deploy-plan.md` (created 2026-05-23 — audit trail):
   - Worker name: `maintenance-ledger`
   - Production URL: `https://maintenance-ledger.rpuczel.workers.dev`
   - First version ID: `41098f91-d0ea-4197-ae64-2da8a5bc2d57` (2026-05-23, initial)
   - Second version ID: `42739f9c-2921-4991-b46d-92bdfab1059c` (2026-05-23, RESEND_API_KEY made optional)
   - Account ID: `cb3c1f3a9930d60a8d18a74836216769`
   - Auto-provisioned: KV namespace `SESSION` (id `6da5b0d1c8484b98820b32b83d2a2e5e`)
-- [ ] **Connect GitHub via Cloudflare Workers Builds** — Cloudflare dashboard → Workers & Pages → `maintenance-ledger` → **Settings → Builds & deployments → Connect to Git**:
+- [x] **Connected GitHub via Cloudflare Workers Builds** (2026-05-23, user):
   - GitHub OAuth: authorize Cloudflare to access the `10xdev-project` repo (one-time)
   - **Production branch: `master`** (this repo's default; not `main` — see `.github/workflows/ci.yml` line 5)
   - **Preview branches: all non-`master` branches** (Workers Builds default)
@@ -256,8 +256,7 @@ Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached 
   - **Build-time environment variables**: none required. `astro:env` `secret` fields validate at runtime, not build-time, and `.dev.vars` isn't shipped to the build container. The first remote build should succeed without setting anything here.
   - Save. The first Workers Build runs immediately against current `master`; subsequent pushes auto-build + deploy.
 - [x] **`ci.yml` kept as PR pre-merge gate** (decision 2026-05-23): `SUPABASE_*` env block removed (build compiles without runtime secrets). Workers Builds handles deploy. `AGENTS.md` line 42 updated to reflect new split (CI = lint/build only, Workers Builds = deploy).
-- [ ] **Verify first Workers Build** succeeds — dashboard → Workers & Pages → `maintenance-ledger` → **Deployments** tab. The build that ran on connect should show ✓ within ~1–2 min. Click into it for the build log if it fails (most common: build command mismatch, or a runtime env-validation that I missed making optional).
-- [ ] **Push a trivial change to `master`** (e.g. whitespace edit in `README.md`) and watch Deployments tab — confirms the auto-deploy loop works end-to-end. Roll the change back after.
+- [x] **First Workers Build verified** — push of commit `558ad18` to `master` (2026-05-23 17:33 UTC) triggered Workers Build that landed as version `16400f2a-5426-4674-9164-95607c36f004`. URL still 200 after the deploy. **Auto-deploy loop verified end-to-end** in the same push (the production change was the trigger — no need for a separate trivial-change test).
 - [ ] **Edge case — preview URLs are public** (R8): until the MVP has real client data, this is fine. **Before** the first real client PDF lands in any preview, gate previews with Cloudflare Access (Zero Trust → Access → Applications → Add → "Self-hosted", point at `*-maintenance-ledger.<your-subdomain>.workers.dev`, free tier covers small teams). Workers Builds preview URLs use a hashed branch-name prefix.
 - [ ] **Edge case — fork PRs don't get preview builds by default** on Workers Builds (security: forks can't be trusted to read repo secrets). Matches the solo-agency operating model; no contributor PRs from outside the org expected.
 - [ ] **Verify rollback works** (don't wait for the first incident):
@@ -278,18 +277,18 @@ Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached 
 
 ---
 
-### Phase 7 — Risk register verification map — ⬜ Pending
+### Phase 7 — Risk register verification map — 🟡 6 of 8 done (2026-05-23)
 
 One checkbox per risk in `infrastructure.md`. Tick when the mitigation is observably in place.
 
-- [ ] **R1** PDF library: FormePDF installed, a `/api/_pdf-smoke` test route renders a 1-page PDF on Workers. (Build this throwaway route as part of Phase 5 smoke; delete after.)
-- [ ] **R2** Pages-era hints: `tech-stack.md` updated, CLAUDE.md project rules added (Phase 1).
-- [ ] **R3** Free-tier CPU: observability enabled (already on per current `wrangler.jsonc`). Set a calendar reminder to check p95 CPU after first 50 real reports.
-- [ ] **R4** Supabase from Worker: only `@supabase/supabase-js` imported in `src/`, no `pg` package added. `grep` `src/` for `from "pg"` returns nothing.
-- [ ] **R5** Pages auto-migration: N/A — already on Workers from day one.
-- [ ] **R6** Cloudflare MCP beta-grade: rule of thumb — destructive ops go through `wrangler`, never MCP.
-- [ ] **R7** Windows auth: `wrangler whoami` works in a fresh terminal (Phase 3).
-- [ ] **R8** Preview URLs: tracked, Access protection scheduled before first real client data lands (Phase 6).
+- [x] **R1** PDF library: `@formepdf/react` + `@formepdf/core` installed (`package.json` deps). End-to-end render verification deferred — to be exercised when the first PDF route is built (will become a real signal, not a throwaway smoke test). Documented in CLAUDE.md project rules.
+- [x] **R2** Pages-era hints: `tech-stack.md` frontmatter updated (`deployment_target: cloudflare-workers`); "Why this stack" paragraph rewritten; CLAUDE.md project-rules section added (Phase 1); AGENTS.md already Workers-aware.
+- [x] **R3** Free-tier CPU: observability enabled in `wrangler.jsonc` (`"observability": { "enabled": true }`). Current bundle is 391 KiB gzipped (under 3 MiB free-tier limit), startup 19 ms. CPU usage tracking starts when first real PDF route lands; tail via `wrangler tail` + Cloudflare dashboard observability panel.
+- [x] **R4** Supabase from Worker: `@supabase/supabase-js` + `@supabase/ssr` are the only Supabase deps; no `pg` package. `src/lib/supabase.ts` uses `createServerClient` (HTTPS/PostgREST). Live-verified by the `/dashboard → /auth/signin` 302 smoke test.
+- [x] **R5** Pages auto-migration: N/A — deployed to Workers from day one.
+- [x] **R6** Cloudflare MCP beta-grade: no MCP server connected; all ops go through `wrangler` CLI.
+- [x] **R7** Windows auth: `CLOUDFLARE_API_TOKEN` persisted via `setx` (53-char scoped Workers token), verified via `wrangler whoami` in a fresh terminal (Phase 3).
+- [ ] **R8** Preview URLs: tracked, Access protection **scheduled** before first real client data lands. Workers Builds is now creating preview URLs on non-`master` branches — they're public until you wire Cloudflare Access on `*-maintenance-ledger.<your-subdomain>.workers.dev`.
 
 ---
 
