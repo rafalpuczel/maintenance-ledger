@@ -5,6 +5,7 @@
 - **Supabase from Workers = `@supabase/supabase-js` over HTTP/PostgREST.** Never import `pg` from a Worker. Migrations and seed scripts run from a local Node process against the Supabase host directly.
 - **Supabase keys = `sb_publishable_...` / `sb_secret_...`** (new system, July 2025+). Never use legacy `anon` / `service_role` for new code. Server-side (Worker) uses `SUPABASE_SECRET_KEY`; client-side (only if needed) uses `SUPABASE_PUBLISHABLE_KEY`.
 - **CPU budget**: Workers free tier is 10 ms/req. PDF generation will push past this on real-shaped reports — plan to upgrade to Workers Paid ($5/mo, 30 s/req) at the first p95 timeout. Watch via `wrangler tail` + observability dashboard.
+- **Auth password verification = peppered Web Crypto HMAC, NOT bcrypt.** `SHARED_PASSWORD_HASH` is `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))` (`src/lib/auth/credentials.ts`), verified with a constant-time compare. bcrypt/argon2/PBKDF2 are banned from the request path: they are deliberately CPU-bound and blow the 10 ms free-tier budget (a cost-12 `bcryptjs.compare` ~100 ms gets the request killed). A slow KDF buys little here — the credential is a single deploy secret, not a user-table dump — and online guessing is defended by the per-IP `SESSION` KV throttle. Mint a hash with the `hashPassword()` helper / matching `node:crypto` HMAC.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 

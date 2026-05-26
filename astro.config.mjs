@@ -20,6 +20,7 @@ export default defineConfig({
       SUPABASE_SECRET_KEY: envField.string({ context: "server", access: "secret" }),
       SHARED_USERNAME: envField.string({ context: "server", access: "secret" }),
       SHARED_PASSWORD_HASH: envField.string({ context: "server", access: "secret" }),
+      SHARED_PASSWORD_PEPPER: envField.string({ context: "server", access: "secret" }),
       SESSION_HMAC_KEY: envField.string({ context: "server", access: "secret" }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
     },

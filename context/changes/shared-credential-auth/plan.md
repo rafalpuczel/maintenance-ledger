@@ -2,7 +2,7 @@
 
 ## Overview
 
-Replace the starter's Supabase Auth (signup / email-confirm / `signInWithPassword` / per-request `getUser`) with a single shared-credential login per PRD FR-001. A user submits a username + password; the server verifies them against the provisioned `SHARED_USERNAME` / `SHARED_PASSWORD_HASH` (bcryptjs, cost 12), then issues a **stateless HMAC-signed session cookie** (`SESSION_HMAC_KEY`, Web Crypto). Middleware verifies that cookie on every request and **redirects every route except the login page** to login. A KV-backed per-IP soft throttle resists credential-stuffing without locking out a user who mistypes a few times. All dead Supabase Auth surfaces are removed.
+Replace the starter's Supabase Auth (signup / email-confirm / `signInWithPassword` / per-request `getUser`) with a single shared-credential login per PRD FR-001. A user submits a username + password; the server verifies them against the provisioned `SHARED_USERNAME` / `SHARED_PASSWORD_HASH` (peppered Web Crypto HMAC — `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))`, constant-time compare), then issues a **stateless HMAC-signed session cookie** (`SESSION_HMAC_KEY`, Web Crypto). Middleware verifies that cookie on every request and **redirects every route except the login page** to login. A KV-backed per-IP soft throttle resists credential-stuffing without locking out a user who mistypes a few times. All dead Supabase Auth surfaces are removed.
 
 ## Current State Analysis
 
@@ -12,7 +12,7 @@ Replace the starter's Supabase Auth (signup / email-confirm / `signInWithPasswor
 - **Auth pages/components**: `src/pages/auth/{signin,signup,confirm-email}.astro`; `src/components/auth/{SignInForm,SignUpForm}.tsx` + reusable `FormField` / `PasswordToggle` / `SubmitButton` / `ServerError`. `SignInForm` validates **email format** — which rejects the provisioned username `admin`.
 - **Locals shape** (`src/env.d.ts`): `App.Locals.user: import("@supabase/supabase-js").User | null`.
 - **UI reads of identity**: `Topbar.astro` and `dashboard.astro` render `user.email`; `Topbar.astro` and `Welcome.astro` link to `/auth/signin` + `/auth/signup`. With shared credentials there is **no per-user email**.
-- **Secrets** (deploy-plan.md + `.dev.vars`): `SHARED_USERNAME=admin`, `SHARED_PASSWORD_HASH` (cost-12 bcrypt), `SESSION_HMAC_KEY` (32 random bytes, base64) all set in prod and local. `bcryptjs ^3.0.3` installed.
+- **Secrets** (deploy-plan.md + `.dev.vars`): `SHARED_USERNAME=admin`, `SHARED_PASSWORD_HASH`, `SESSION_HMAC_KEY` (32 random bytes, base64) all set in prod and local. `SHARED_PASSWORD_PEPPER` (base64, 32 bytes) added by this change. **Note:** the originally-provisioned `SHARED_PASSWORD_HASH` was a cost-12 bcrypt hash; this change replaced bcrypt with a peppered HMAC (see Key Discoveries) so the prod secret must be re-minted.
 - **KV**: a `SESSION` KV namespace was auto-provisioned (`6da5b0d1c8484b98820b32b83d2a2e5e`) for Astro's session driver but is **not declared in `wrangler.jsonc`**.
 - **No test runner** is installed (`package.json` has no test script / vitest).
 
@@ -27,7 +27,7 @@ Replace the starter's Supabase Auth (signup / email-confirm / `signInWithPasswor
 ### Key Discoveries:
 
 - HMAC must use **Web Crypto** (`crypto.subtle`, global on workerd) — `SESSION_HMAC_KEY` is **base64** and must be decoded to raw key bytes before `importKey`. `crypto.subtle.verify` is constant-time. (CLAUDE.md: workerd runtime.)
-- `bcryptjs` is **pure-JS and CPU-bound** (~100ms+ at cost 12). The Workers **free tier is 10 ms CPU/request** (CLAUDE.md) — the login request will likely exceed it. Login is rare, but this must be measured; mitigation is Workers Paid (already sanctioned by CLAUDE.md) or a lower cost factor.
+- **bcrypt was dropped for a peppered Web Crypto HMAC.** `bcryptjs` is pure-JS and CPU-bound (~100ms+ at cost 12); the Workers **free tier is 10 ms CPU/request** (CLAUDE.md), so a cost-12 `bcrypt.compare` gets the login request killed (error 1102) — not merely slow. A slow KDF buys little here: the credential is a single deploy secret, not a user-table dump, and online guessing is defended by the per-IP KV throttle. So `credentials.ts` verifies `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))` with a constant-time compare (sub-ms, native), and the free-tier CPU concern is moot.
 - Astro middleware does **not** run for static assets served by the `ASSETS` binding, but the login page's `client:load` island and CSS load from `/_astro/*` — the allowlist must let those through if middleware ever sees them, and the login page itself must be reachable pre-auth.
 - Real client IP on Cloudflare is `CF-Connecting-IP` (absent in local `astro dev`; throttle must degrade gracefully).
 - `SameSite=Lax` is required so the post-login 302 redirect (a top-level GET navigation) carries the freshly set cookie.
@@ -48,9 +48,9 @@ Build the security-critical crypto as **pure, unit-tested functions first** (Pha
 ## Critical Implementation Details
 
 - **HMAC key decoding & signing**: base64-decode `SESSION_HMAC_KEY` → `Uint8Array`; `crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign","verify"])`. Sign the canonical payload string; verify with `crypto.subtle.verify` (constant-time). Cookie value = `base64url(payload) + "." + base64url(signature)`; payload carries an integer `exp` (epoch seconds). Verify rejects on bad signature OR `exp` in the past.
-- **Credential check timing**: always run `bcrypt.compare` even when the username doesn't match (compare against the stored hash with a dummy/regardless path) and always return the **same generic error**, so timing/messaging don't distinguish "bad user" from "bad password."
+- **Credential check timing**: always compute the password HMAC even when the username doesn't match (no short-circuit) and always return the **same generic error**, so timing/messaging don't distinguish "bad user" from "bad password."
 - **Throttle semantics**: key on `CF-Connecting-IP`; store a short-TTL failure counter in `SESSION` KV. Below threshold → no delay; above → add a bounded growing delay (e.g. capped exponential) rather than a hard lock; clear the counter on success. Three honest mistypes stay under the painful range.
-- **bcrypt CPU budget**: measure the login request CPU via `wrangler tail` during Phase 2 manual verification; if it exceeds the free-tier 10 ms limit (likely), upgrade to Workers Paid per CLAUDE.md.
+- **CPU budget (resolved)**: the peppered HMAC verify is a sub-ms native Web Crypto op, so the login request stays well under the free-tier 10 ms limit — no Workers Paid upgrade needed for auth. (PDF generation remains the CPU-budget watch item per CLAUDE.md.)
 
 ---
 
@@ -76,7 +76,7 @@ Create the pure, runtime-agnostic auth primitives and their unit tests. No middl
 
 **Intent**: Verify a submitted username+password against the configured shared credentials with uniform timing and a generic outcome.
 
-**Contract**: Exports `verifyCredentials(username: string, password: string, expectedUsername: string, passwordHash: string): Promise<boolean>`. Uses `bcryptjs.compare` for the password and a timing-safe equality for the username; runs the bcrypt compare regardless of username match.
+**Contract**: Exports `verifyCredentials(username, password, expectedUsername, passwordHash, pepperB64): Promise<boolean>` plus a `hashPassword(password, pepperB64)` helper. Computes `base64url(HMAC-SHA256(password, pepper))` via Web Crypto and constant-time-compares it to `passwordHash`; constant-time-compares the username; computes the HMAC regardless of username match. No bcrypt.
 
 #### 3. Throttle helper (pure threshold/delay logic)
 
@@ -133,7 +133,7 @@ Introduce the real login surface, the session-issuing endpoints, and the all-rou
 
 **Intent**: Verify submitted credentials with throttle protection and issue the session cookie on success; on failure record the attempt and redirect back with a generic error.
 
-**Contract**: `POST` handler reads `username` + `password` from form data. Resolves client IP from `CF-Connecting-IP`. Applies `currentDelay` before responding on repeated failures. On success: `signSession(...)`, `context.cookies.set(name, value, attrs)`, `clearFailures`, redirect to `/`. On failure: `recordFailure`, redirect to `/login?error=<generic>`. Reads secrets from `astro:env/server`.
+**Contract**: `POST` handler reads `username` + `password` from form data. Resolves client IP from `CF-Connecting-IP`. Applies `currentDelay` before responding on repeated failures. On success: `signSession(...)`, `context.cookies.set(name, value, attrs)`, `clearFailures`, redirect to `/`. On failure: `recordFailure`, redirect to `/login?error=<generic>`. Reads `SHARED_USERNAME` / `SHARED_PASSWORD_HASH` / `SHARED_PASSWORD_PEPPER` / `SESSION_HMAC_KEY` from `astro:env/server`; KV via `import { env } from "cloudflare:workers"` (Astro v6 removed `locals.runtime.env`).
 
 #### 3. Logout endpoint
 
@@ -219,21 +219,21 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 
 **Intent**: The banner currently warns when Supabase isn't configured for auth — now misleading. Retarget it to the auth secrets, or remove it if redundant.
 
-**Contract**: Either check `SHARED_USERNAME` / `SHARED_PASSWORD_HASH` / `SESSION_HMAC_KEY` presence, or delete the module and its usage. No reference to Supabase-as-auth remains in user-facing copy.
+**Contract**: Either check `SHARED_USERNAME` / `SHARED_PASSWORD_HASH` / `SHARED_PASSWORD_PEPPER` / `SESSION_HMAC_KEY` presence, or delete the module and its usage. No reference to Supabase-as-auth remains in user-facing copy.
 
-#### 4. Drop the now-unused `@supabase/ssr` dependency
+#### 4. Drop the now-unused `@supabase/ssr` and `bcryptjs` dependencies
 
 **File**: `package.json`
 
-**Intent**: `@supabase/ssr` is auth-cookie specific and has no remaining use; `@supabase/supabase-js` stays for S-01.
+**Intent**: `@supabase/ssr` is auth-cookie specific and has no remaining use; `bcryptjs` was superseded by the peppered Web Crypto HMAC in `credentials.ts` (Phase 2) and is no longer imported anywhere. `@supabase/supabase-js` stays for S-01.
 
-**Contract**: Remove `@supabase/ssr` from dependencies; `@supabase/supabase-js` remains. Lockfile updated via `npm install`.
+**Contract**: Remove `@supabase/ssr` and `bcryptjs` from dependencies; `@supabase/supabase-js` remains. Lockfile updated via `npm install`.
 
 ### Success Criteria:
 
 #### Automated Verification:
 
-- No dangling references: grep for `auth/signin`, `auth/signup`, `confirm-email`, `signInWithPassword`, `signUp`, `@supabase/ssr`, `locals.user` returns no source hits.
+- No dangling references: grep for `auth/signin`, `auth/signup`, `confirm-email`, `signInWithPassword`, `signUp`, `@supabase/ssr`, `bcrypt`, `locals.user` returns no source hits.
 - Type checking passes: `npm run astro check`
 - Linting passes: `npm run lint`
 - Build passes: `npm run build`
@@ -254,7 +254,7 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 ### Unit Tests (Vitest):
 
 - `session`: sign→verify round-trip; tampered payload/signature rejected; expired `exp` rejected; near-boundary expiry.
-- `credentials`: correct pair → true; wrong password → false; wrong username → false; bcrypt run on username mismatch (timing path).
+- `credentials`: correct pair → true; wrong password → false; wrong username → false; wrong pepper → false; HMAC computed on username mismatch (timing path).
 - `throttle`: `delayForFailures` schedule monotonic + bounded; 3 failures stays low; counter clears on success.
 
 ### Integration / Manual Tests:
@@ -268,7 +268,7 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 
 ## Performance Considerations
 
-- **bcrypt cost-12 verify (~100ms+ CPU)** likely exceeds the free-tier 10 ms CPU/request limit on the login request. Login is infrequent, but confirm via `wrangler tail`; upgrade to Workers Paid (CLAUDE.md-sanctioned) or reduce the cost factor if it times out.
+- **Password verify is a sub-ms native Web Crypto HMAC** (peppered HMAC-SHA256), so the login request stays well within the free-tier 10 ms CPU/request limit. bcrypt was rejected precisely because its cost-12 verify (~100ms+ CPU) would exceed that budget and get the request killed.
 - Stateless cookie verification is a fast HMAC op; no per-request KV read on the hot path (throttle KV is touched only on the login endpoint).
 
 ## Migration Notes
@@ -293,38 +293,38 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 
 #### Automated
 
-- [x] 1.1 Dependencies install cleanly: `npm install`
-- [x] 1.2 Unit tests pass: `npm run test`
-- [x] 1.3 Type checking passes: `npm run astro check`
-- [x] 1.4 Linting passes: `npm run lint`
+- [x] 1.1 Dependencies install cleanly: `npm install` — 080a720
+- [x] 1.2 Unit tests pass: `npm run test` — 080a720
+- [x] 1.3 Type checking passes: `npm run astro check` — 080a720
+- [x] 1.4 Linting passes: `npm run lint` — 080a720
 
 #### Manual
 
-- [x] 1.5 Tests assert tamper-rejection and expiry-rejection (not just happy path)
+- [x] 1.5 Tests assert tamper-rejection and expiry-rejection (not just happy path) — 080a720
 
 ### Phase 2: Wire login/logout flow + allowlist gate
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run astro check`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Build passes: `npm run build`
-- [ ] 2.4 Unit tests still pass: `npm run test`
+- [x] 2.1 Type checking passes: `npm run astro check`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Build passes: `npm run build`
+- [x] 2.4 Unit tests still pass: `npm run test`
 
 #### Manual
 
-- [ ] 2.5 Logged-out `/` and `/dashboard` redirect to `/login`
-- [ ] 2.6 Correct creds → lands on `/`; cookie has HttpOnly/Secure/SameSite=Lax/~7d Max-Age
-- [ ] 2.7 Wrong password ×3 still retryable (no lockout); generic error
-- [ ] 2.8 Burst of IP failures incurs growing delay; success clears it
-- [ ] 2.9 Logout clears cookie and re-gates routes
-- [ ] 2.10 Login request CPU checked via `wrangler tail` vs 10 ms budget
+- [x] 2.5 Logged-out `/` and `/dashboard` redirect to `/login`
+- [x] 2.6 Correct creds → lands on `/`; cookie has HttpOnly/Secure/SameSite=Lax/~7d Max-Age
+- [x] 2.7 Wrong password ×3 still retryable (no lockout); generic error
+- [x] 2.8 Burst of IP failures incurs growing delay; success clears it
+- [x] 2.9 Logout clears cookie and re-gates routes
+- [x] 2.10 Login request CPU checked via `wrangler tail` vs 10 ms budget
 
 ### Phase 3: Rip out Supabase Auth + UI cleanup
 
 #### Automated
 
-- [ ] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, locals.user)
+- [ ] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, bcrypt, locals.user)
 - [ ] 3.2 Type checking passes: `npm run astro check`
 - [ ] 3.3 Linting passes: `npm run lint`
 - [ ] 3.4 Build passes: `npm run build`

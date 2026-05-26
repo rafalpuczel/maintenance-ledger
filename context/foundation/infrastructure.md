@@ -72,9 +72,9 @@ Six months later the MVP had quietly died. The build stalled in week 3 when the 
 ## Operational Story
 
 - **Preview deploys**: every push to a non-default branch on the connected GitHub repo produces a Workers preview URL via Workers Builds (the CF-managed CI). Preview URLs are public; if any preview ever contains a real client PDF, gate previews with Cloudflare Access (free tier covers small teams). Fork PRs do not get previews on Workers Builds by default — that matches the single-agency operating model (no external contributors).
-- **Secrets**: `wrangler secret put <NAME>` for the Workers Secrets Store. Per the PRD, `SHARED_USERNAME` and `SHARED_PASSWORD_HASH` (FR-001), `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_HMAC_KEY`, and email-sender credentials (Resend / Postmark) all live here. Rotation = re-run `wrangler secret put` and redeploy. Never in `.dev.vars` once production is live; never committed to the repo.
+- **Secrets**: `wrangler secret put <NAME>` for the Workers Secrets Store. Per the PRD, `SHARED_USERNAME`, `SHARED_PASSWORD_HASH` + `SHARED_PASSWORD_PEPPER` (FR-001), `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_HMAC_KEY`, and email-sender credentials (Resend / Postmark) all live here. `SHARED_PASSWORD_HASH` is a peppered HMAC (`base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))`), not bcrypt. Rotation = re-run `wrangler secret put` and redeploy. Never in `.dev.vars` once production is live; never committed to the repo.
 - **Rollback**: `wrangler rollback` reverts to the previous version instantly (no rebuild). Use `wrangler versions list` to pick a specific older version when more than one rollback is needed. Caveat — `wrangler rollback` does not roll back Supabase migrations, so any deploy that includes a migration needs a separately-scripted DB rollback (or a forward-fix).
-- **Approval**: agent may unattendedly run `npm run build`, `wrangler deploy` (to staging or to a preview URL), `wrangler tail`, `wrangler secret list`, `wrangler versions list`. **Human-gated**: production deploy of a release containing a Supabase migration; `wrangler secret put` for `SUPABASE_SERVICE_ROLE_KEY`, `SHARED_PASSWORD_HASH`, or `SESSION_HMAC_KEY`; project deletion; account-level changes. Scoped API token (Workers + Pages only, no DNS, no Workers Secrets for unrelated projects, no billing) for the agent.
+- **Approval**: agent may unattendedly run `npm run build`, `wrangler deploy` (to staging or to a preview URL), `wrangler tail`, `wrangler secret list`, `wrangler versions list`. **Human-gated**: production deploy of a release containing a Supabase migration; `wrangler secret put` for `SUPABASE_SERVICE_ROLE_KEY`, `SHARED_PASSWORD_HASH`, `SHARED_PASSWORD_PEPPER`, or `SESSION_HMAC_KEY`; project deletion; account-level changes. Scoped API token (Workers + Pages only, no DNS, no Workers Secrets for unrelated projects, no billing) for the agent.
 - **Logs**: `wrangler tail` streams live request logs. `wrangler deployments list` for deploy history. For structured queries, the `observability.mcp.cloudflare.com` MCP server exposes logs/analytics as typed tool calls — useful when the agent makes many discovery-style queries. Enable observability in `wrangler.jsonc` (`"observability": { "enabled": true }`) so logs are retained beyond the live stream.
 
 ## Risk Register
@@ -136,7 +136,8 @@ Validated against the pinned versions: `@astrojs/cloudflare` v13+ targeting Work
 
    ```powershell
    wrangler secret put SHARED_USERNAME
-   wrangler secret put SHARED_PASSWORD_HASH
+   wrangler secret put SHARED_PASSWORD_HASH      # base64url HMAC-SHA256(password, pepper), NOT bcrypt
+   wrangler secret put SHARED_PASSWORD_PEPPER    # base64, 32 random bytes
    wrangler secret put SESSION_HMAC_KEY
    wrangler secret put SUPABASE_URL
    wrangler secret put SUPABASE_SERVICE_ROLE_KEY

@@ -103,8 +103,8 @@ Each phase has a status indicator and a checkboxed task list. Tick boxes as you 
 
 - [x] **Worker name: rename to `maintenance-ledger`** (applied in Phase 2 — update `wrangler.jsonc` `name`).
 - [x] `SESSION_HMAC_KEY` generated (32 random bytes, base64) and saved to password manager.
-- [x] `SHARED_PASSWORD_HASH` generated via `bcryptjs.hashSync(pw, 12)` in Node REPL, verified round-trip, saved to password manager.
-- [x] **Side effect**: `bcryptjs` added to `package.json` dependencies — keep it; the FR-001 login handler will import it for password verification on the Worker (workerd-compatible pure JS).
+- [x] `SHARED_PASSWORD_HASH` generated via `bcryptjs.hashSync(pw, 12)` in Node REPL, verified round-trip, saved to password manager. **⚠️ Superseded by F-01 (shared-credential-auth):** bcrypt was dropped for a peppered Web Crypto HMAC (10 ms free-tier CPU limit). Re-mint as `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))` and provision the new `SHARED_PASSWORD_PEPPER` secret before the next prod deploy.
+- [x] **Side effect**: `bcryptjs` added to `package.json` dependencies. **⚠️ Superseded by F-01:** the login handler uses Web Crypto HMAC, not bcrypt; `bcryptjs` is now unused and is removed in F-01's Phase 3 dependency cleanup.
 
 ---
 
@@ -158,7 +158,8 @@ Land all dependency/config changes locally before touching production.
   SUPABASE_URL=...
   SUPABASE_SECRET_KEY=sb_secret_...
   SHARED_USERNAME=admin
-  SHARED_PASSWORD_HASH=...
+  SHARED_PASSWORD_HASH=...        # F-01: base64url HMAC-SHA256(password, pepper), NOT bcrypt
+  SHARED_PASSWORD_PEPPER=...      # F-01: base64, 32 random bytes
   SESSION_HMAC_KEY=...
   RESEND_API_KEY=...
   ```
@@ -206,14 +207,15 @@ Pre-check: `wrangler.jsonc` `name` matches the worker you want secrets attached 
 - [ ] `wrangler secret put SUPABASE_URL` (paste Supabase project URL)
 - [ ] `wrangler secret put SUPABASE_SECRET_KEY` (paste the `sb_secret_...` key from Supabase dashboard → Settings → API → **new** keys section)
 - [ ] `wrangler secret put SHARED_USERNAME` (paste the chosen username, e.g. `admin`)
-- [ ] `wrangler secret put SHARED_PASSWORD_HASH` (paste the bcrypt/argon2 hash generated in Phase 0)
+- [ ] `wrangler secret put SHARED_PASSWORD_HASH` (F-01: paste the `base64url(HMAC-SHA256(password, pepper))` value — NOT a bcrypt hash; the Phase 0 bcrypt value is superseded)
+- [ ] `wrangler secret put SHARED_PASSWORD_PEPPER` (F-01: paste the base64 32-byte pepper used to mint the hash above)
 - [ ] `wrangler secret put SESSION_HMAC_KEY` (paste the base64 random key from Phase 0)
 - [ ] `wrangler secret put RESEND_API_KEY` — **deferred** until Prereq C is done. `RESEND_API_KEY` made `optional: true` in `astro.config.mjs` env schema so the worker doesn't 500 without it (re-deployed as version `42739f9c-2921-4991-b46d-92bdfab1059c`). Email features will need this set before FR-019/020 are wired.
-- [ ] **Verify all six exist:**
+- [ ] **Verify all seven exist:**
   ```powershell
   wrangler secret list
   ```
-  Expected: six entries, names only (values are not shown — that's correct).
+  Expected: seven entries (F-01 added `SHARED_PASSWORD_PEPPER`), names only (values are not shown — that's correct).
 - [x] **Edge case mitigated** — first `wrangler deploy` ran before Phase 4 to register the worker entity (see Phase 4 header note). Subsequent `wrangler secret put` calls won't hit "Worker not found".
 
 ---

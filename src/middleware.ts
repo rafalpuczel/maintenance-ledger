@@ -1,24 +1,25 @@
 import { defineMiddleware } from "astro:middleware";
-import { createClient } from "@/lib/supabase";
+import { SESSION_HMAC_KEY } from "astro:env/server";
+import { COOKIE_NAME, verifySession } from "@/lib/auth/session";
 
-const PROTECTED_ROUTES = ["/dashboard"];
+// Public surfaces reachable without a session. Everything else is gated.
+const PUBLIC_PATHS = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
+const PUBLIC_PREFIXES = ["/_astro/", "/favicon"];
+
+function isPublic(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) {
+    return true;
+  }
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const supabase = createClient(context.request.headers, context.cookies);
+  const cookie = context.cookies.get(COOKIE_NAME)?.value;
+  const authenticated = cookie ? await verifySession(SESSION_HMAC_KEY, cookie) : false;
+  context.locals.authenticated = authenticated;
 
-  if (supabase) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    context.locals.user = user ?? null;
-  } else {
-    context.locals.user = null;
-  }
-
-  if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {
-    if (!context.locals.user) {
-      return context.redirect("/auth/signin");
-    }
+  if (!authenticated && !isPublic(context.url.pathname)) {
+    return context.redirect("/login");
   }
 
   return next();
