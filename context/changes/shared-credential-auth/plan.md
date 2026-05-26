@@ -324,14 +324,14 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 
 #### Automated
 
-- [x] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, bcrypt, locals.user)
-- [x] 3.2 Type checking passes: `npm run astro check`
-- [x] 3.3 Linting passes: `npm run lint`
-- [x] 3.4 Build passes: `npm run build`
-- [x] 3.5 Unit tests pass: `npm run test`
+- [x] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, bcrypt, locals.user) — 1c47074
+- [x] 3.2 Type checking passes: `npm run astro check` — 1c47074
+- [x] 3.3 Linting passes: `npm run lint` — 1c47074
+- [x] 3.4 Build passes: `npm run build` — 1c47074
+- [x] 3.5 Unit tests pass: `npm run test` — 1c47074
 
 #### Manual
 
-- [x] 3.6 Logged-in nav across `/` and `/dashboard` has no broken links / no email placeholder
-- [x] 3.7 Login page CSS/JS load pre-auth
-- [x] 3.8 No misleading "Supabase not configured" banner on a provisioned deploy
+- [x] 3.6 Logged-in nav across `/` and `/dashboard` has no broken links / no email placeholder — 1c47074
+- [x] 3.7 Login page CSS/JS load pre-auth — 1c47074
+- [x] 3.8 No misleading "Supabase not configured" banner on a provisioned deploy — 1c47074
