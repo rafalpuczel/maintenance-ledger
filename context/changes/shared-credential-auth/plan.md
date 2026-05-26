@@ -306,32 +306,32 @@ Remove every dead Supabase Auth surface and fix the UI that referenced per-user 
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run astro check`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Build passes: `npm run build`
-- [x] 2.4 Unit tests still pass: `npm run test`
+- [x] 2.1 Type checking passes: `npm run astro check` — e4a33ab
+- [x] 2.2 Linting passes: `npm run lint` — e4a33ab
+- [x] 2.3 Build passes: `npm run build` — e4a33ab
+- [x] 2.4 Unit tests still pass: `npm run test` — e4a33ab
 
 #### Manual
 
-- [x] 2.5 Logged-out `/` and `/dashboard` redirect to `/login`
-- [x] 2.6 Correct creds → lands on `/`; cookie has HttpOnly/Secure/SameSite=Lax/~7d Max-Age
-- [x] 2.7 Wrong password ×3 still retryable (no lockout); generic error
-- [x] 2.8 Burst of IP failures incurs growing delay; success clears it
-- [x] 2.9 Logout clears cookie and re-gates routes
-- [x] 2.10 Login request CPU checked via `wrangler tail` vs 10 ms budget
+- [x] 2.5 Logged-out `/` and `/dashboard` redirect to `/login` — e4a33ab
+- [x] 2.6 Correct creds → lands on `/`; cookie has HttpOnly/Secure/SameSite=Lax/~7d Max-Age — e4a33ab
+- [x] 2.7 Wrong password ×3 still retryable (no lockout); generic error — e4a33ab
+- [x] 2.8 Burst of IP failures incurs growing delay; success clears it — e4a33ab
+- [x] 2.9 Logout clears cookie and re-gates routes — e4a33ab
+- [x] 2.10 Login request CPU checked via `wrangler tail` vs 10 ms budget — e4a33ab
 
 ### Phase 3: Rip out Supabase Auth + UI cleanup
 
 #### Automated
 
-- [ ] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, bcrypt, locals.user)
-- [ ] 3.2 Type checking passes: `npm run astro check`
-- [ ] 3.3 Linting passes: `npm run lint`
-- [ ] 3.4 Build passes: `npm run build`
-- [ ] 3.5 Unit tests pass: `npm run test`
+- [x] 3.1 No dangling references (grep: auth/signin, auth/signup, confirm-email, signInWithPassword, signUp, @supabase/ssr, bcrypt, locals.user)
+- [x] 3.2 Type checking passes: `npm run astro check`
+- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.4 Build passes: `npm run build`
+- [x] 3.5 Unit tests pass: `npm run test`
 
 #### Manual
 
-- [ ] 3.6 Logged-in nav across `/` and `/dashboard` has no broken links / no email placeholder
-- [ ] 3.7 Login page CSS/JS load pre-auth
-- [ ] 3.8 No misleading "Supabase not configured" banner on a provisioned deploy
+- [x] 3.6 Logged-in nav across `/` and `/dashboard` has no broken links / no email placeholder
+- [x] 3.7 Login page CSS/JS load pre-auth
+- [x] 3.8 No misleading "Supabase not configured" banner on a provisioned deploy
