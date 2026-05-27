@@ -1,9 +1,9 @@
 ---
 change_id: shared-credential-auth
 title: Replace Supabase Auth with HMAC shared-credential session
-status: implemented
+status: impl_reviewed
 created: 2026-05-26
-updated: 2026-05-26
+updated: 2026-05-27
 archived_at: null
 ---
 

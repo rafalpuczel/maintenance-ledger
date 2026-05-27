@@ -2,6 +2,12 @@
 // scale while never hard-locking a user: failures below the free threshold add
 // no delay, above it add a bounded growing delay. KV is injected so the
 // decision logic stays unit-testable.
+//
+// Best-effort only: the counter is read-modify-write over Cloudflare KV, which is
+// eventually consistent — concurrent failures can under-count and slip past the
+// threshold, and a KV read error reads as zero (throttle off / fail-open). This is
+// an anti-stuffing speed bump, NOT a hard rate limit; reach for a Durable Object or
+// Turnstile if a hard guarantee is ever required.
 
 export interface KVLike {
   get(key: string): Promise<string | null>;
@@ -12,7 +18,7 @@ export interface KVLike {
 const FAILURE_TTL_SECONDS = 15 * 60;
 const FREE_THRESHOLD = 5;
 const BASE_DELAY_MS = 250;
-const MAX_DELAY_MS = 5000;
+export const MAX_DELAY_MS = 5000;
 
 // Pure delay schedule: monotonic, bounded, zero for the first FREE_THRESHOLD
 // failures (so an honest mistype of 3 is never punished).
