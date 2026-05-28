@@ -434,26 +434,26 @@ None — no schema, no data, no persisted state. The spike adds and then removes
 
 #### Automated
 
-- [x] 4.1 Benchmark emits a latency distribution over N≥30 runs
-- [x] 4.2 `verdict.md` names exactly one of {PASS-free, PASS-paid, FAIL} with numbers filled in
+- [x] 4.1 Benchmark emits a latency distribution over N≥30 runs — 91be1d4
+- [x] 4.2 `verdict.md` names exactly one of {PASS-free, PASS-paid, FAIL} with numbers filled in — 91be1d4
 
 #### Manual
 
-- [x] 4.3 `wrangler tail` CPU lines captured and typical/worst CPU recorded
-- [x] 4.4 p95 wall-clock vs 5 s and CPU vs 10 ms cross-checked against the verdict line
-- [x] 4.5 Verdict's R3 consequence is explicit and actionable for S-08
+- [x] 4.3 `wrangler tail` CPU lines captured and typical/worst CPU recorded — 91be1d4
+- [x] 4.4 p95 wall-clock vs 5 s and CPU vs 10 ms cross-checked against the verdict line — 91be1d4
+- [x] 4.5 Verdict's R3 consequence is explicit and actionable for S-08 — 91be1d4
 
 ### Phase 5: Cleanup + Findings Capture
 
 #### Automated
 
-- [ ] 5.1 `git status` shows all spike files deleted
-- [ ] 5.2 Build still succeeds after removal: `npm run build`
-- [ ] 5.3 Lint passes: `npm run lint`
-- [ ] 5.4 Clean redeploy succeeds: `wrangler deploy` exits 0
+- [x] 5.1 `git status` shows all spike files deleted
+- [x] 5.2 Build still succeeds after removal: `npm run build`
+- [x] 5.3 Lint passes: `npm run lint`
+- [x] 5.4 Clean redeploy succeeds: `wrangler deploy` exits 0
 
 #### Manual
 
-- [ ] 5.5 Live `GET /api/spike-pdf` returns 404 (route gone from prod)
-- [ ] 5.6 `verdict.md` + CLAUDE.md/lessons note capture verdict, p95, and workerd recipe for S-08
-- [ ] 5.7 `change.md` status reflects spike completion
+- [x] 5.5 Live `GET /api/spike-pdf` returns 404 (route gone from prod)
+- [x] 5.6 `verdict.md` + CLAUDE.md/lessons note capture verdict, p95, and workerd recipe for S-08
+- [x] 5.7 `change.md` status reflects spike completion
