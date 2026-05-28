@@ -420,28 +420,28 @@ None — no schema, no data, no persisted state. The spike adds and then removes
 
 #### Automated
 
-- [x] 3.1 Production build succeeds: `npm run build`
-- [x] 3.2 Deployed bundle under 3 MB gzipped free-tier limit — FAILED on free: 7.75 MiB uncompressed (forme_bg.wasm alone is 6.45 MiB) > 3 MiB free cap; deployed on Workers Paid (10 MiB cap)
-- [x] 3.3 `wrangler deploy` exits 0 and reports a live version — version 74bc10c3, paid tier
+- [x] 3.1 Production build succeeds: `npm run build` — a32e179
+- [x] 3.2 Deployed bundle under 3 MB gzipped free-tier limit — FAILED on free: 7.75 MiB uncompressed (forme_bg.wasm alone is 6.45 MiB) > 3 MiB free cap; deployed on Workers Paid (10 MiB cap) — a32e179
+- [x] 3.3 `wrangler deploy` exits 0 and reports a live version — version 74bc10c3, paid tier — a32e179
 
 #### Manual
 
-- [ ] 3.4 Authenticated live `GET /api/spike-pdf` matches the local branded PDF
-- [ ] 3.5 Unauthenticated live request is rejected by middleware (FR-001 guardrail holds)
-- [ ] 3.6 `wrangler tail` emits a per-request CPU-time line (instrument confirmed)
+- [x] 3.4 Authenticated live `GET /api/spike-pdf` matches the local branded PDF — a32e179
+- [x] 3.5 Unauthenticated live request is rejected by middleware (FR-001 guardrail holds) — a32e179
+- [x] 3.6 `wrangler tail` emits a per-request CPU-time line (instrument confirmed) — a32e179
 
 ### Phase 4: p95 Measurement + Two-Tier Verdict
 
 #### Automated
 
-- [ ] 4.1 Benchmark emits a latency distribution over N≥30 runs
-- [ ] 4.2 `verdict.md` names exactly one of {PASS-free, PASS-paid, FAIL} with numbers filled in
+- [x] 4.1 Benchmark emits a latency distribution over N≥30 runs
+- [x] 4.2 `verdict.md` names exactly one of {PASS-free, PASS-paid, FAIL} with numbers filled in
 
 #### Manual
 
-- [ ] 4.3 `wrangler tail` CPU lines captured and typical/worst CPU recorded
-- [ ] 4.4 p95 wall-clock vs 5 s and CPU vs 10 ms cross-checked against the verdict line
-- [ ] 4.5 Verdict's R3 consequence is explicit and actionable for S-08
+- [x] 4.3 `wrangler tail` CPU lines captured and typical/worst CPU recorded
+- [x] 4.4 p95 wall-clock vs 5 s and CPU vs 10 ms cross-checked against the verdict line
+- [x] 4.5 Verdict's R3 consequence is explicit and actionable for S-08
 
 ### Phase 5: Cleanup + Findings Capture
 
