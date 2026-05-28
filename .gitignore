@@ -31,3 +31,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# F-02 spike: throwaway rendered sample PDFs (removed in Phase 5)
+spike-report*.pdf

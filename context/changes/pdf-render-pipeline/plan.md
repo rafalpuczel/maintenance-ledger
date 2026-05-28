@@ -43,6 +43,16 @@ Verifiable by: a written verdict file naming one of three outcomes (PASS-free / 
 - **Astro's CSRF check rejects cross-site POSTs** — programmatic login (curl/bench) must send a matching `Origin` header or the login POST returns `403 Cross-site POST form submissions are forbidden`. The Phase 4 bench script must set `Origin`.
 - **Local smoke result (2026-05-28):** `GET /api/spike-pdf` on `astro dev` (real workerd) → HTTP 200, `application/pdf`, valid 1-page PDF (`%PDF-1.7`, `%%EOF`). `init(wasm)` + `renderDocument` succeed on workerd. **The R1 "does FormePDF run on workerd at all" question is answered YES at the smoke level.**
 
+### Phase 2 discoveries (empirical — feed these to S-08):
+
+- **`Page` has NO `style` prop.** `PageProps` (size, margin, backgroundImage, …) does not include `style` — page-level defaults (fontFamily, fontSize, color, lineHeight) go on `Document.style`. Putting `style` on `<Page>` errors `Property 'style' does not exist on type 'PageProps'`. (`node_modules/@formepdf/react/dist/types.d.ts:214`)
+- **woff2 embeds fine as TrueType.** Registering an Inter **woff2** via `Document.fonts={[{ family, src: <Uint8Array> }]}` produced an embedded `/FontFile2` + `/Subtype /Type0` (composite TrueType) in the output PDF — FormePDF's Rust core decompresses woff/woff2, no need for a raw `.ttf`. Custom-font branding on workerd is **proven**.
+- **Astro disallows `.tsx` API routes in `src/pages/`** ("Unsupported file type … Only Astro files can be used as pages"). The route must be `.ts`; build the document element via a non-JSX factory (`createElement`) exported from a `.tsx` module under `src/lib/`. (Spike uses `spikeReportElement()` in `spike-template.tsx`.)
+- **Font bytes inline cleanly via base64 + `atob`** — a generated `.ts` exporting `Uint8Array` (decoded with workerd-safe `atob`) avoids any font-asset-loading mechanism on the edge. The latin Inter subset is ~17 KB (~23 KB base64).
+- **Empty-section hiding works by construction** — `{rows.length > 0 ? <Section/> : null}` with `licenses: []` omits the License Renewals section entirely. (Both `&&`-with-`false` and ternary-with-`null` type-check against `ReactNode`; the earlier suspicion that `false` children were the blocker was wrong — it was the `Page` `style` prop.)
+- **Do NOT wrap each section in a `<View>`.** A `View` is a keep-together flex block: when a long table flows onto page 2, a trailing section wrapped in its own `<View>` can't be split and gets pushed wholesale to the next page, leaving a large gap (cost a real page in testing — 3 pages instead of 2). Let sections flow as **direct Page children** (bare `<Text>`/`<View style={kv}>` + fragments `<>…</>` for title+table groups). Reserve wrapper `<View>`s for content that genuinely must stay together.
+- **Full-template result (2026-05-28):** 30 plugin rows → **2-page PDF, 26.8 KB**, header logo + footer page numbers, paginated plugins table with repeating header row, embedded Inter, empty License section omitted. Renders on local workerd. **R1 typography killer retired.**
+
 ## What We're NOT Doing
 
 - **No real data layer / Supabase** — the payload is hardcoded. (That's S-06.)
@@ -373,29 +383,29 @@ None — no schema, no data, no persisted state. The spike adds and then removes
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro check`
-- [x] 1.2 Build succeeds with the wasm import bundled: `npm run build`
-- [x] 1.3 Lint passes: `npm run lint`
+- [x] 1.1 Type checking passes: `npx astro check` — 0e46c10
+- [x] 1.2 Build succeeds with the wasm import bundled: `npm run build` — 0e46c10
+- [x] 1.3 Lint passes: `npm run lint` — 0e46c10
 
 #### Manual
 
-- [x] 1.4 `npm run dev` serves `GET /api/spike-pdf` returning a valid one-page PDF
-- [x] 1.5 No init/WebAssembly runtime error; bundle delivers a usable `WebAssembly.Module`
+- [x] 1.4 `npm run dev` serves `GET /api/spike-pdf` returning a valid one-page PDF — 0e46c10
+- [x] 1.5 No init/WebAssembly runtime error; bundle delivers a usable `WebAssembly.Module` — 0e46c10
 
 ### Phase 2: Branded Full-Section Template + Embedded Font
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro check`
-- [ ] 2.2 Build succeeds (font asset + template bundled): `npm run build`
-- [ ] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx astro check`
+- [x] 2.2 Build succeeds (font asset + template bundled): `npm run build`
+- [x] 2.3 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.4 Full branded multi-section PDF renders (logo header, footer page numbers, tables)
-- [ ] 2.5 Intentionally-empty section is omitted (no header, no "none")
-- [ ] 2.6 30-row plugins table paginates with header row repeated
-- [ ] 2.7 Custom font glyphs render correctly (TrueType embedding confirmed on workerd)
+- [x] 2.4 Full branded multi-section PDF renders (logo header, footer page numbers, tables)
+- [x] 2.5 Intentionally-empty section is omitted (no header, no "none")
+- [x] 2.6 30-row plugins table paginates with header row repeated
+- [x] 2.7 Custom font glyphs render correctly (TrueType embedding confirmed on workerd)
 
 ### Phase 3: Auth-Gated Spike Endpoint + Deploy
 
