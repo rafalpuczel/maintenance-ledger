@@ -53,6 +53,15 @@ Verifiable by: a written verdict file naming one of three outcomes (PASS-free / 
 - **Do NOT wrap each section in a `<View>`.** A `View` is a keep-together flex block: when a long table flows onto page 2, a trailing section wrapped in its own `<View>` can't be split and gets pushed wholesale to the next page, leaving a large gap (cost a real page in testing — 3 pages instead of 2). Let sections flow as **direct Page children** (bare `<Text>`/`<View style={kv}>` + fragments `<>…</>` for title+table groups). Reserve wrapper `<View>`s for content that genuinely must stay together.
 - **Full-template result (2026-05-28):** 30 plugin rows → **2-page PDF, 26.8 KB**, header logo + footer page numbers, paginated plugins table with repeating header row, embedded Inter, empty License section omitted. Renders on local workerd. **R1 typography killer retired.**
 
+### Phase 3 discoveries (empirical — the verdict drivers for S-08):
+
+- **FormePDF's wasm engine is 6.45 MiB — this ALONE exceeds the 3 MiB free-tier Worker SIZE cap.** The free tier is impossible on bundle size, independent of CPU. Total deployed Worker = **7.75 MiB uncompressed / 3.29 MiB gzipped** (the 3 MiB limit is on *uncompressed* script size). Fits the **10 MiB Workers Paid cap** with headroom. This is the dominant constraint and the concrete reason FormePDF requires the paid tier — exactly what infra.md R1/R3 pre-warned. (The generated PDF is ~27 KB; the wasm is the rendering engine shipped in the Worker, one-time at deploy, not per-request.)
+- **Edge CPU ≈ 188 ms per render** (`wrangler tail`: `cpuTime: 188`, `wallTime: 192`, `outcome: ok`, colo WAW). That is **~19× the 10 ms free-tier CPU budget** but **far under the 30 s paid-tier limit**. So free tier fails on BOTH size and CPU; paid has large headroom on both.
+- **Edge render is byte-identical to local** — 26,786 bytes, 2 pages, `/FontFile2`+`/Type0` embedded font. ~0.42 s total round-trip from PL. No edge/local divergence.
+- **`wrangler tail --format json` emits per-request `cpuTime`/`wallTime`** (the Phase 4 measurement instrument). Note: output is pretty-printed multi-line JSON, not JSONL — parse accordingly.
+- **Prod login works** with the local-dev password — prod secrets (`SHARED_PASSWORD_HASH`/`PEPPER`) were re-provisioned since deploy-plan.md's stale-bcrypt note; Phase 4 benchmarking is unblocked.
+- **Verdict is converging on PASS-paid** before the formal run: renders correctly on the edge, wall-clock ~0.2 s (≪ 5 s NFR), CPU ~188 ms (≪ 30 s paid limit), free tier ruled out by both size and CPU.
+
 ## What We're NOT Doing
 
 - **No real data layer / Supabase** — the payload is hardcoded. (That's S-06.)
@@ -396,24 +405,24 @@ None — no schema, no data, no persisted state. The spike adds and then removes
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro check`
-- [x] 2.2 Build succeeds (font asset + template bundled): `npm run build`
-- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx astro check` — 4a73005
+- [x] 2.2 Build succeeds (font asset + template bundled): `npm run build` — 4a73005
+- [x] 2.3 Lint passes: `npm run lint` — 4a73005
 
 #### Manual
 
-- [x] 2.4 Full branded multi-section PDF renders (logo header, footer page numbers, tables)
-- [x] 2.5 Intentionally-empty section is omitted (no header, no "none")
-- [x] 2.6 30-row plugins table paginates with header row repeated
-- [x] 2.7 Custom font glyphs render correctly (TrueType embedding confirmed on workerd)
+- [x] 2.4 Full branded multi-section PDF renders (logo header, footer page numbers, tables) — 4a73005
+- [x] 2.5 Intentionally-empty section is omitted (no header, no "none") — 4a73005
+- [x] 2.6 30-row plugins table paginates with header row repeated — 4a73005
+- [x] 2.7 Custom font glyphs render correctly (TrueType embedding confirmed on workerd) — 4a73005
 
 ### Phase 3: Auth-Gated Spike Endpoint + Deploy
 
 #### Automated
 
-- [ ] 3.1 Production build succeeds: `npm run build`
-- [ ] 3.2 Deployed bundle under 3 MB gzipped free-tier limit
-- [ ] 3.3 `wrangler deploy` exits 0 and reports a live version
+- [x] 3.1 Production build succeeds: `npm run build`
+- [x] 3.2 Deployed bundle under 3 MB gzipped free-tier limit — FAILED on free: 7.75 MiB uncompressed (forme_bg.wasm alone is 6.45 MiB) > 3 MiB free cap; deployed on Workers Paid (10 MiB cap)
+- [x] 3.3 `wrangler deploy` exits 0 and reports a live version — version 74bc10c3, paid tier
 
 #### Manual
 
