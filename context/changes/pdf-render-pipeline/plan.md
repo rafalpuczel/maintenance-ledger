@@ -447,13 +447,13 @@ None — no schema, no data, no persisted state. The spike adds and then removes
 
 #### Automated
 
-- [x] 5.1 `git status` shows all spike files deleted
-- [x] 5.2 Build still succeeds after removal: `npm run build`
-- [x] 5.3 Lint passes: `npm run lint`
-- [x] 5.4 Clean redeploy succeeds: `wrangler deploy` exits 0
+- [x] 5.1 `git status` shows all spike files deleted — 9f1e856
+- [x] 5.2 Build still succeeds after removal: `npm run build` — 9f1e856
+- [x] 5.3 Lint passes: `npm run lint` — 9f1e856
+- [x] 5.4 Clean redeploy succeeds: `wrangler deploy` exits 0 — 9f1e856
 
 #### Manual
 
-- [x] 5.5 Live `GET /api/spike-pdf` returns 404 (route gone from prod)
-- [x] 5.6 `verdict.md` + CLAUDE.md/lessons note capture verdict, p95, and workerd recipe for S-08
-- [x] 5.7 `change.md` status reflects spike completion
+- [x] 5.5 Live `GET /api/spike-pdf` returns 404 (route gone from prod) — 9f1e856
+- [x] 5.6 `verdict.md` + CLAUDE.md/lessons note capture verdict, p95, and workerd recipe for S-08 — 9f1e856
+- [x] 5.7 `change.md` status reflects spike completion — 9f1e856
