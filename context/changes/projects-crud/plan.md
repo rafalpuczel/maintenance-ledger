@@ -338,24 +338,24 @@ Negligible: `target_scale: small`, low qps. PostgREST queries are fast and well 
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run astro check`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Build passes: `npm run build`
-- [x] 1.4 `src/types/database.types.ts` exists and exports `Database`
+- [x] 1.1 Type checking passes: `npm run astro check` — c341824
+- [x] 1.2 Linting passes: `npm run lint` — c341824
+- [x] 1.3 Build passes: `npm run build` — c341824
+- [x] 1.4 `src/types/database.types.ts` exists and exports `Database` — c341824
 
 #### Manual
 
-- [x] 1.5 `npm run db:push` applies the migration to live Supabase with no error
-- [x] 1.6 `projects` table visible in dashboard with all FR-005 columns + UNIQUE slug
-- [x] 1.7 `npm run db:types` regenerates cleanly (no churn on second run)
+- [x] 1.5 `npm run db:push` applies the migration to live Supabase with no error — c341824
+- [x] 1.6 `projects` table visible in dashboard with all FR-005 columns + UNIQUE slug — c341824
+- [x] 1.7 `npm run db:types` regenerates cleanly (no churn on second run) — c341824
 
 ### Phase 2: Validation schema + query layer
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm run test`
-- [ ] 2.2 Type checking passes: `npm run astro check`
-- [ ] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Unit tests pass: `npm run test`
+- [x] 2.2 Type checking passes: `npm run astro check`
+- [x] 2.3 Linting passes: `npm run lint`
 
 ### Phase 3: API routes
 
