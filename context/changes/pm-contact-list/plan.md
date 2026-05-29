@@ -313,10 +313,10 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Automated
 
-- [x] 1.1 Migration pushes cleanly: `npm run db:push` (applied to LOCAL via `supabase db reset --local` per dev runbook; cloud `db:push` deferred to ship)
-- [x] 1.2 Types regenerate and include `pm_contacts`: `npm run db:types` (used `gen types --local` since migration is local-only)
-- [x] 1.3 Type checking passes: `npm run astro check`
-- [x] 1.4 Linting passes (exit code): `npm run lint`
+- [x] 1.1 Migration pushes cleanly: `npm run db:push` (applied to LOCAL via `supabase db reset --local` per dev runbook; cloud `db:push` deferred to ship) — a598a29
+- [x] 1.2 Types regenerate and include `pm_contacts`: `npm run db:types` (used `gen types --local` since migration is local-only) — a598a29
+- [x] 1.3 Type checking passes: `npm run astro check` — a598a29
+- [x] 1.4 Linting passes (exit code): `npm run lint` — a598a29
 
 #### Manual
 
@@ -328,9 +328,9 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run astro check`
-- [ ] 2.2 Linting passes (exit code): `npm run lint`
-- [ ] 2.3 Unit tests pass: `npm run test`
+- [x] 2.1 Type checking passes: `npm run astro check`
+- [x] 2.2 Linting passes (exit code): `npm run lint`
+- [x] 2.3 Unit tests pass: `npm run test`
 
 ### Phase 3: API routes
 
