@@ -283,26 +283,26 @@ New table only; no data backfill. The single-row guard means no cleanup of pre-e
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly to local Supabase DB (judged by exit code)
-- [x] 1.2 `npm run db:types` regenerates `database.types.ts` with full `brand_settings` Row
-- [x] 1.3 Type checking passes (`npm run typecheck` / `astro check`)
+- [x] 1.1 Migration applies cleanly to local Supabase DB (judged by exit code) — 2b43108
+- [x] 1.2 `npm run db:types` regenerates `database.types.ts` with full `brand_settings` Row — 2b43108
+- [x] 1.3 Type checking passes (`npm run typecheck` / `astro check`) — 2b43108
 
 #### Manual
 
-- [ ] 1.4 Inserting a second `brand_settings` row fails the single-row guard
-- [ ] 1.5 Table not exposed to anon/authenticated roles (RLS enabled, no policies)
+- [x] 1.4 Inserting a second `brand_settings` row fails the single-row guard — 2b43108
+- [x] 1.5 Table not exposed to anon/authenticated roles (RLS enabled, no policies) — 2b43108
 
 ### Phase 2: Schema, queries, and form parser (lib)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`npm run typecheck`)
-- [ ] 2.2 Linting passes (`npm run lint`, by exit code)
+- [x] 2.1 Type checking passes (`npm run typecheck`)
+- [x] 2.2 Linting passes (`npm run lint`, by exit code)
 
 #### Manual
 
-- [ ] 2.3 Schema rejects non-hex color and empty agency name with expected messages
-- [ ] 2.4 `parseBrandForm` handles set/preserve/clear logo and rejects oversized/non-image files
+- [x] 2.3 Schema rejects non-hex color and empty agency name with expected messages
+- [x] 2.4 `parseBrandForm` handles set/preserve/clear logo and rejects oversized/non-image files
 
 ### Phase 3: API route
 
