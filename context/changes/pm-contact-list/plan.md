@@ -320,9 +320,9 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Manual
 
-- [ ] 1.5 `pm_contacts` table exists with all six columns; `email_key` shows as generated
-- [ ] 1.6 `email_key` UNIQUE rejects a second case/whitespace-variant email
-- [ ] 1.7 RLS enabled on the table with no policies
+- [x] 1.5 `pm_contacts` table exists with all six columns; `email_key` shows as generated — a598a29
+- [x] 1.6 `email_key` UNIQUE rejects a second case/whitespace-variant email — a598a29
+- [x] 1.7 RLS enabled on the table with no policies — a598a29
 
 ### Phase 2: Schema, queries, and form parser (lib)
 
@@ -342,26 +342,26 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Manual
 
-- [ ] 3.4 Valid POST creates a row and redirects `?ok=created`
-- [ ] 3.5 Duplicate email redirects with friendly error, not a 500
-- [ ] 3.6 Update and delete endpoints work
-- [ ] 3.7 Signed-out requests are redirected to `/login` by middleware
+- [x] 3.4 Valid POST creates a row and redirects `?ok=created` — be1f722
+- [x] 3.5 Duplicate email redirects with friendly error, not a 500 — be1f722
+- [x] 3.6 Update and delete endpoints work — be1f722
+- [x] 3.7 Signed-out requests are redirected to `/login` by middleware — be1f722
 
 ### Phase 4: UI — single contact page, inline-edit island, dashboard nav
 
 #### Automated
 
-- [x] 4.1 Type checking passes: `npm run astro check`
-- [x] 4.2 Linting passes (exit code): `npm run lint`
-- [x] 4.3 Build succeeds (exit code): `npm run build`
-- [x] 4.4 Unit tests still pass: `npm run test`
+- [x] 4.1 Type checking passes: `npm run astro check` — e1486d4
+- [x] 4.2 Linting passes (exit code): `npm run lint` — e1486d4
+- [x] 4.3 Build succeeds (exit code): `npm run build` — e1486d4
+- [x] 4.4 Unit tests still pass: `npm run test` — e1486d4
 
 #### Manual
 
-- [ ] 4.5 Dashboard "PM contacts" link opens `/pm-contacts`
-- [ ] 4.6 Adding a valid contact lists it with a success banner; empty state shows when none
-- [ ] 4.7 Client-side blocks blank name / malformed email with inline errors
-- [ ] 4.8 Inline edit saves; Cancel discards
-- [ ] 4.9 Two-click delete removes the row; Cancel aborts
-- [ ] 4.10 Duplicate email surfaces the server error banner
-- [ ] 4.11 Keyboard navigation works; no regressions on sibling Settings pages
+- [x] 4.5 Dashboard "PM contacts" link opens `/pm-contacts` — e1486d4
+- [x] 4.6 Adding a valid contact lists it with a success banner; empty state shows when none — e1486d4
+- [x] 4.7 Client-side blocks blank name / malformed email with inline errors — e1486d4
+- [x] 4.8 Inline edit saves; Cancel discards — e1486d4
+- [x] 4.9 Two-click delete removes the row; Cancel aborts — e1486d4
+- [x] 4.10 Duplicate email surfaces the server error banner — e1486d4
+- [x] 4.11 Keyboard navigation works; no regressions on sibling Settings pages — e1486d4
