@@ -44,8 +44,8 @@ What's currently live on Cloudflare and how it got there. The implementation pla
 | `SUPABASE_URL` | ✅ Set | Cloud project URL |
 | `SUPABASE_SECRET_KEY` | ✅ Set | `sb_secret_...` (new Supabase key system, July 2025+) |
 | `SHARED_USERNAME` | ✅ Set | FR-001 |
-| `SHARED_PASSWORD_HASH` | ⚠️ Re-provision | F-01 switched bcrypt → peppered HMAC. The set value is a stale cost-12 bcrypt hash; re-mint as `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))` or prod login fails |
-| `SHARED_PASSWORD_PEPPER` | ⬜ Not set | NEW (F-01). base64, 32 random bytes. `wrangler secret put` before next prod deploy |
+| `SHARED_PASSWORD_HASH` | ✅ Set | Re-provisioned 2026-05-29 as `base64url(HMAC-SHA256(password, SHARED_PASSWORD_PEPPER))` (peppered HMAC, not bcrypt). Prod login verified working. |
+| `SHARED_PASSWORD_PEPPER` | ✅ Set | Set 2026-05-29. base64, 32 random bytes. Mints the hash above. |
 | `SESSION_HMAC_KEY` | ✅ Set | 32 random bytes base64 |
 | `RESEND_API_KEY` | ⬜ Deferred | Marked `optional: true` in `astro.config.mjs` env schema; required before FR-019/020 are wired |
 
