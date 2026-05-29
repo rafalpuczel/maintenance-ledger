@@ -1,0 +1,52 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import BrandSettingsForm from "@/components/brand-settings/BrandSettingsForm";
+import { createSupabaseClient } from "@/lib/supabase";
+import { getBrand } from "@/lib/brand-settings/queries";
+
+const brand = await getBrand(createSupabaseClient());
+
+const error = Astro.url.searchParams.get("error");
+const ok = Astro.url.searchParams.get("ok");
+const okMessage = ok === "saved" ? "Brand settings saved." : null;
+
+const updatedAt = brand ? new Date(brand.updated_at).toLocaleString() : null;
+---
+
+<Layout title="Brand settings">
+  <div class="bg-cosmic min-h-screen p-6 text-white">
+    <div class="mx-auto max-w-xl">
+      <div class="mb-6 flex items-center justify-between">
+        <a href="/" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Home</a>
+        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-xl font-bold text-transparent">
+          Brand settings
+        </h1>
+      </div>
+
+      {
+        okMessage && (
+          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
+            {okMessage}
+          </p>
+        )
+      }
+
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <BrandSettingsForm
+          action="/api/brand-settings"
+          serverError={error}
+          updatedAt={updatedAt}
+          initial={brand
+            ? {
+                agency_name: brand.agency_name,
+                primary_color: brand.primary_color,
+                secondary_color: brand.secondary_color,
+                logo: brand.logo,
+              }
+            : undefined}
+          client:load
+        />
+      </div>
+    </div>
+  </div>
+</Layout>

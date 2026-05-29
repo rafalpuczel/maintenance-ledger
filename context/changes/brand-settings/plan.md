@@ -308,28 +308,28 @@ New table only; no data backfill. The single-row guard means no cleanup of pre-e
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`npm run typecheck`)
-- [x] 3.2 Linting passes (`npm run lint`, by exit code)
-- [x] 3.3 Production build succeeds (`npm run build`, by exit code)
+- [x] 3.1 Type checking passes (`npm run typecheck`) — 6328cb0
+- [x] 3.2 Linting passes (`npm run lint`, by exit code) — 6328cb0
+- [x] 3.3 Production build succeeds (`npm run build`, by exit code) — 6328cb0
 
 #### Manual
 
-- [ ] 3.4 Valid multipart POST upserts and redirects to `?ok=saved`
-- [ ] 3.5 Invalid POST redirects to `?error=...` with a readable message
+- [x] 3.4 Valid multipart POST upserts and redirects to `?ok=saved`
+- [x] 3.5 Invalid POST redirects to `?error=...` with a readable message
 
 ### Phase 4: UI page + React island
 
 #### Automated
 
-- [ ] 4.1 Type checking passes (`npm run typecheck`)
-- [ ] 4.2 Linting passes (`npm run lint`, `.astro` + `.tsx` clean, by exit code)
-- [ ] 4.3 Production build succeeds (`npm run build`, by exit code)
+- [x] 4.1 Type checking passes (`npm run typecheck`)
+- [x] 4.2 Linting passes (`npm run lint`, `.astro` + `.tsx` clean, by exit code)
+- [x] 4.3 Production build succeeds (`npm run build`, by exit code)
 
 #### Manual
 
-- [ ] 4.4 `/brand-settings` loads behind auth (redirects to `/login` when signed out)
-- [ ] 4.5 Saving colors without a new logo preserves the existing logo on reload
-- [ ] 4.6 Uploading a PNG/JPEG shows live preview and persists after save
-- [ ] 4.7 "Remove logo" clears the logo after save
-- [ ] 4.8 Oversized/non-image upload shows a friendly error; stored data unchanged
-- [ ] 4.9 Invalid hex blocked client-side; last-saved timestamp updates after save
+- [x] 4.4 `/brand-settings` loads behind auth (redirects to `/login` when signed out)
+- [x] 4.5 Saving colors without a new logo preserves the existing logo on reload
+- [x] 4.6 Uploading a PNG/JPEG shows live preview and persists after save
+- [x] 4.7 "Remove logo" clears the logo after save
+- [x] 4.8 Oversized/non-image upload shows a friendly error; stored data unchanged
+- [x] 4.9 Invalid hex blocked client-side; last-saved timestamp updates after save
