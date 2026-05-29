@@ -296,21 +296,21 @@ New table only; no data backfill. The single-row guard means no cleanup of pre-e
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`npm run typecheck`)
-- [x] 2.2 Linting passes (`npm run lint`, by exit code)
+- [x] 2.1 Type checking passes (`npm run typecheck`) — 96e16ec
+- [x] 2.2 Linting passes (`npm run lint`, by exit code) — 96e16ec
 
 #### Manual
 
-- [x] 2.3 Schema rejects non-hex color and empty agency name with expected messages
-- [x] 2.4 `parseBrandForm` handles set/preserve/clear logo and rejects oversized/non-image files
+- [x] 2.3 Schema rejects non-hex color and empty agency name with expected messages — 96e16ec
+- [x] 2.4 `parseBrandForm` handles set/preserve/clear logo and rejects oversized/non-image files — 96e16ec
 
 ### Phase 3: API route
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`npm run typecheck`)
-- [ ] 3.2 Linting passes (`npm run lint`, by exit code)
-- [ ] 3.3 Production build succeeds (`npm run build`, by exit code)
+- [x] 3.1 Type checking passes (`npm run typecheck`)
+- [x] 3.2 Linting passes (`npm run lint`, by exit code)
+- [x] 3.3 Production build succeeds (`npm run build`, by exit code)
 
 #### Manual
 
