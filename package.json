@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:push": "supabase db push --linked",
+    "db:types": "supabase gen types --linked --schema public > src/types/database.types.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",
