@@ -1,0 +1,57 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ProjectForm from "@/components/projects/ProjectForm";
+import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
+import { createSupabaseClient } from "@/lib/supabase";
+import { getProjectBySlug } from "@/lib/projects/queries";
+
+const slug = Astro.params.slug ?? "";
+const project = await getProjectBySlug(createSupabaseClient(), slug);
+
+if (!project) {
+  return Astro.redirect("/projects?error=Project%20not%20found");
+}
+
+const error = Astro.url.searchParams.get("error");
+const ok = Astro.url.searchParams.get("ok");
+const okMessage = ok === "created" ? "Project created." : ok === "updated" ? "Changes saved." : null;
+---
+
+<Layout title={project.name}>
+  <div class="bg-cosmic min-h-screen p-6 text-white">
+    <div class="mx-auto max-w-xl">
+      <div class="mb-6 flex items-center justify-between">
+        <a href="/projects" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Projects</a>
+        <DeleteProjectButton projectId={project.id} projectName={project.name} slug={project.slug} client:load />
+      </div>
+
+      {
+        okMessage && (
+          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
+            {okMessage}
+          </p>
+        )
+      }
+
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <h1 class="mb-6 text-2xl font-bold">{project.name}</h1>
+        <ProjectForm
+          action={`/api/projects/${project.id}`}
+          mode="edit"
+          serverError={error}
+          returnSlug={project.slug}
+          initial={{
+            name: project.name,
+            slug: project.slug,
+            url: project.url ?? "",
+            contact_company: project.contact_company ?? "",
+            contact_name: project.contact_name ?? "",
+            contact_email: project.contact_email ?? "",
+            internal_notes: project.internal_notes ?? "",
+          }}
+          client:load
+        />
+      </div>
+    </div>
+  </div>
+</Layout>

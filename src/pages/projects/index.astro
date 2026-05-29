@@ -1,0 +1,70 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createSupabaseClient } from "@/lib/supabase";
+import { listProjects } from "@/lib/projects/queries";
+
+const projects = await listProjects(createSupabaseClient());
+
+const error = Astro.url.searchParams.get("error");
+const ok = Astro.url.searchParams.get("ok");
+const okMessage = ok === "deleted" ? "Project deleted." : null;
+---
+
+<Layout title="Projects">
+  <div class="bg-cosmic min-h-screen p-6 text-white">
+    <div class="mx-auto max-w-3xl">
+      <div class="mb-6 flex items-center justify-between">
+        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Projects
+        </h1>
+        <a
+          href="/projects/new"
+          class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-purple-500"
+        >
+          New project
+        </a>
+      </div>
+
+      {
+        error && (
+          <p class="mb-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">{error}</p>
+        )
+      }
+      {
+        okMessage && (
+          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
+            {okMessage}
+          </p>
+        )
+      }
+
+      {
+        projects.length === 0 ? (
+          <div class="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
+            <p class="mb-3">No projects yet.</p>
+            <a href="/projects/new" class="text-purple-300 underline-offset-4 hover:underline">
+              Create your first project
+            </a>
+          </div>
+        ) : (
+          <ul class="space-y-2">
+            {projects.map((p) => (
+              <li>
+                <a
+                  href={`/projects/${p.slug}`}
+                  class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:bg-white/10"
+                >
+                  <span>
+                    <span class="font-medium">{p.name}</span>
+                    <span class="ml-2 text-sm text-blue-100/50">{p.slug}</span>
+                  </span>
+                  {p.contact_company && <span class="text-sm text-blue-100/60">{p.contact_company}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</Layout>

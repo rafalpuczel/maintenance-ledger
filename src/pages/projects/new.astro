@@ -1,0 +1,20 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ProjectForm from "@/components/projects/ProjectForm";
+
+const error = Astro.url.searchParams.get("error");
+---
+
+<Layout title="New project">
+  <div class="bg-cosmic min-h-screen p-6 text-white">
+    <div class="mx-auto max-w-xl">
+      <div class="mb-6 flex items-center gap-3">
+        <a href="/projects" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Projects</a>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
+        <h1 class="mb-6 text-2xl font-bold">New project</h1>
+        <ProjectForm action="/api/projects" mode="create" serverError={error} client:load />
+      </div>
+    </div>
+  </div>
+</Layout>

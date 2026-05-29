@@ -361,31 +361,31 @@ Negligible: `target_scale: small`, low qps. PostgREST queries are fast and well 
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run astro check`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type checking passes: `npm run astro check` — 2c5067d
+- [x] 3.2 Linting passes: `npm run lint` — 2c5067d
+- [x] 3.3 Build passes: `npm run build` — 2c5067d
 
 #### Manual
 
-- [x] 3.4 `POST /api/projects` creates a row and redirects to `/projects`
-- [x] 3.5 Duplicate slug returns friendly error, not 500
-- [x] 3.6 Update changes row + redirects to detail; delete removes row
-- [x] 3.7 Unauthenticated request to any endpoint redirects to `/login`
+- [x] 3.4 `POST /api/projects` creates a row and redirects to `/projects` — 2c5067d
+- [x] 3.5 Duplicate slug returns friendly error, not 500 — 2c5067d
+- [x] 3.6 Update changes row + redirects to detail; delete removes row — 2c5067d
+- [x] 3.7 Unauthenticated request to any endpoint redirects to `/login` — 2c5067d
 
 ### Phase 4: UI — list, create, detail/edit
 
 #### Automated
 
-- [ ] 4.1 Type checking passes: `npm run astro check`
-- [ ] 4.2 Linting passes: `npm run lint`
-- [ ] 4.3 Build passes: `npm run build`
-- [ ] 4.4 Unit tests still pass: `npm run test`
+- [x] 4.1 Type checking passes: `npm run astro check`
+- [x] 4.2 Linting passes: `npm run lint`
+- [x] 4.3 Build passes: `npm run build`
+- [x] 4.4 Unit tests still pass: `npm run test`
 
 #### Manual
 
-- [ ] 4.5 Create → appears in list; slug auto-suggests and is editable
-- [ ] 4.6 Detail shows all fields; inline edit saves
-- [ ] 4.7 Delete modal requires typing the name before enabling; row gone after
-- [ ] 4.8 Empty state renders with no projects
-- [ ] 4.9 Dashboard → Projects nav works; unauthenticated `/projects*` redirects to `/login`
-- [ ] 4.10 Keyboard-only navigation works through create/edit forms
+- [x] 4.5 Create → appears in list; slug auto-suggests and is editable
+- [x] 4.6 Detail shows all fields; inline edit saves
+- [x] 4.7 Delete modal requires typing the name before enabling; row gone after
+- [x] 4.8 Empty state renders with no projects
+- [x] 4.9 Dashboard → Projects nav works; unauthenticated `/projects*` redirects to `/login`
+- [x] 4.10 Keyboard-only navigation works through create/edit forms
