@@ -353,24 +353,24 @@ Negligible: `target_scale: small`, low qps. PostgREST queries are fast and well 
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm run test`
-- [x] 2.2 Type checking passes: `npm run astro check`
-- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Unit tests pass: `npm run test` — b2b3ced
+- [x] 2.2 Type checking passes: `npm run astro check` — b2b3ced
+- [x] 2.3 Linting passes: `npm run lint` — b2b3ced
 
 ### Phase 3: API routes
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run astro check`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type checking passes: `npm run astro check`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 `POST /api/projects` creates a row and redirects to `/projects`
-- [ ] 3.5 Duplicate slug returns friendly error, not 500
-- [ ] 3.6 Update changes row + redirects to detail; delete removes row
-- [ ] 3.7 Unauthenticated request to any endpoint redirects to `/login`
+- [x] 3.4 `POST /api/projects` creates a row and redirects to `/projects`
+- [x] 3.5 Duplicate slug returns friendly error, not 500
+- [x] 3.6 Update changes row + redirects to detail; delete removes row
+- [x] 3.7 Unauthenticated request to any endpoint redirects to `/login`
 
 ### Phase 4: UI — list, create, detail/edit
 
