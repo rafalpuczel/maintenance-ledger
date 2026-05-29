@@ -336,9 +336,9 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run astro check`
-- [x] 3.2 Linting passes (exit code): `npm run lint`
-- [x] 3.3 Build succeeds (exit code): `npm run build`
+- [x] 3.1 Type checking passes: `npm run astro check` — be1f722
+- [x] 3.2 Linting passes (exit code): `npm run lint` — be1f722
+- [x] 3.3 Build succeeds (exit code): `npm run build` — be1f722
 
 #### Manual
 
@@ -351,10 +351,10 @@ New table only; no existing data to migrate. Rollback is `drop table public.pm_c
 
 #### Automated
 
-- [ ] 4.1 Type checking passes: `npm run astro check`
-- [ ] 4.2 Linting passes (exit code): `npm run lint`
-- [ ] 4.3 Build succeeds (exit code): `npm run build`
-- [ ] 4.4 Unit tests still pass: `npm run test`
+- [x] 4.1 Type checking passes: `npm run astro check`
+- [x] 4.2 Linting passes (exit code): `npm run lint`
+- [x] 4.3 Build succeeds (exit code): `npm run build`
+- [x] 4.4 Unit tests still pass: `npm run test`
 
 #### Manual
 
