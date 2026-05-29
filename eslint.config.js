@@ -65,6 +65,10 @@ const astroConfig = tseslint.config({
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",
     "astro/prefer-class-list-directive": "warn",
+    // typescript-eslint's no-misused-promises crashes traversing a
+    // `return Astro.redirect(...)` in .astro frontmatter (rule bug, not a real
+    // misuse — Astro.redirect returns a Response synchronously). Off for .astro.
+    "@typescript-eslint/no-misused-promises": "off",
   },
 });
 

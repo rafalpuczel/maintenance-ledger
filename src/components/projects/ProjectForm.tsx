@@ -42,7 +42,7 @@ export default function ProjectForm({ action, mode, serverError, initial, return
   const [slugEdited, setSlugEdited] = useState(mode === "edit");
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  function set<K extends keyof ProjectFormValues>(key: K, value: string) {
+  function set(key: keyof ProjectFormValues, value: string) {
     setValues((prev) => {
       const next = { ...prev, [key]: value };
       // Auto-suggest the slug from the name until the user edits the slug.
@@ -56,7 +56,7 @@ export default function ProjectForm({ action, mode, serverError, initial, return
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     const result = projectSchema.safeParse(values);
     if (!result.success) {
       e.preventDefault();
