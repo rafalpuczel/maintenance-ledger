@@ -314,22 +314,22 @@ New table only; no data backfill. The single-row guard means no cleanup of pre-e
 
 #### Manual
 
-- [x] 3.4 Valid multipart POST upserts and redirects to `?ok=saved`
-- [x] 3.5 Invalid POST redirects to `?error=...` with a readable message
+- [x] 3.4 Valid multipart POST upserts and redirects to `?ok=saved` — c706dc9
+- [x] 3.5 Invalid POST redirects to `?error=...` with a readable message — c706dc9
 
 ### Phase 4: UI page + React island
 
 #### Automated
 
-- [x] 4.1 Type checking passes (`npm run typecheck`)
-- [x] 4.2 Linting passes (`npm run lint`, `.astro` + `.tsx` clean, by exit code)
-- [x] 4.3 Production build succeeds (`npm run build`, by exit code)
+- [x] 4.1 Type checking passes (`npm run typecheck`) — c706dc9
+- [x] 4.2 Linting passes (`npm run lint`, `.astro` + `.tsx` clean, by exit code) — c706dc9
+- [x] 4.3 Production build succeeds (`npm run build`, by exit code) — c706dc9
 
 #### Manual
 
-- [x] 4.4 `/brand-settings` loads behind auth (redirects to `/login` when signed out)
-- [x] 4.5 Saving colors without a new logo preserves the existing logo on reload
-- [x] 4.6 Uploading a PNG/JPEG shows live preview and persists after save
-- [x] 4.7 "Remove logo" clears the logo after save
-- [x] 4.8 Oversized/non-image upload shows a friendly error; stored data unchanged
-- [x] 4.9 Invalid hex blocked client-side; last-saved timestamp updates after save
+- [x] 4.4 `/brand-settings` loads behind auth (redirects to `/login` when signed out) — c706dc9
+- [x] 4.5 Saving colors without a new logo preserves the existing logo on reload — c706dc9
+- [x] 4.6 Uploading a PNG/JPEG shows live preview and persists after save — c706dc9
+- [x] 4.7 "Remove logo" clears the logo after save — c706dc9
+- [x] 4.8 Oversized/non-image upload shows a friendly error; stored data unchanged — c706dc9
+- [x] 4.9 Invalid hex blocked client-side; last-saved timestamp updates after save — c706dc9
