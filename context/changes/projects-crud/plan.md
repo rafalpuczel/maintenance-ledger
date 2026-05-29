@@ -376,16 +376,16 @@ Negligible: `target_scale: small`, low qps. PostgREST queries are fast and well 
 
 #### Automated
 
-- [x] 4.1 Type checking passes: `npm run astro check`
-- [x] 4.2 Linting passes: `npm run lint`
-- [x] 4.3 Build passes: `npm run build`
-- [x] 4.4 Unit tests still pass: `npm run test`
+- [x] 4.1 Type checking passes: `npm run astro check` — 596e820
+- [x] 4.2 Linting passes: `npm run lint` — 596e820
+- [x] 4.3 Build passes: `npm run build` — 596e820
+- [x] 4.4 Unit tests still pass: `npm run test` — 596e820
 
 #### Manual
 
-- [x] 4.5 Create → appears in list; slug auto-suggests and is editable
-- [x] 4.6 Detail shows all fields; inline edit saves
-- [x] 4.7 Delete modal requires typing the name before enabling; row gone after
-- [x] 4.8 Empty state renders with no projects
-- [x] 4.9 Dashboard → Projects nav works; unauthenticated `/projects*` redirects to `/login`
-- [x] 4.10 Keyboard-only navigation works through create/edit forms
+- [x] 4.5 Create → appears in list; slug auto-suggests and is editable — 596e820
+- [x] 4.6 Detail shows all fields; inline edit saves — 596e820
+- [x] 4.7 Delete modal requires typing the name before enabling; row gone after — 596e820
+- [x] 4.8 Empty state renders with no projects — 596e820
+- [x] 4.9 Dashboard → Projects nav works; unauthenticated `/projects*` redirects to `/login` — 596e820
+- [x] 4.10 Keyboard-only navigation works through create/edit forms — 596e820
