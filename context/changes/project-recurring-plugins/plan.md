@@ -299,7 +299,7 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Manual
 
-- [ ] 1.4 Table, `unique(project_id, plugin_id)`, both FKs `on delete cascade`, no `updated_at` confirmed in Supabase
+- [x] 1.4 Table, `unique(project_id, plugin_id)`, both FKs `on delete cascade`, no `updated_at` confirmed in Supabase
 
 ### Phase 2: Validation schema + query layer + form parser
 
@@ -311,7 +311,7 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Manual
 
-- [ ] 2.4 Read-through: promote-then-link and the nested-select projection compile against regenerated types
+- [x] 2.4 Read-through: promote-then-link and the nested-select projection compile against regenerated types
 
 ### Phase 3: CRUD API routes
 
@@ -323,7 +323,7 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Manual
 
-- [ ] 3.4 POST create (by id and by name) inserts + 302s; delete route removes the row
+- [x] 3.4 POST create (by id and by name) inserts + 302s; delete route removes the row
 
 ### Phase 4: Recurring-plugins island + project-page section
 
@@ -335,8 +335,8 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Manual
 
-- [ ] 4.4 Dropdown lists catalog plugins; pick + Add attaches and shows after redirect
-- [ ] 4.5 Free-text add attaches AND appears in `/plugins-catalog`
-- [ ] 4.6 Re-adding a plugin shows the duplicate message, not a 500
-- [ ] 4.7 Remove → confirm removes; reload confirms persistence
-- [ ] 4.8 Deleting the project cascades the junction rows away
+- [x] 4.4 Dropdown lists catalog plugins; pick + Add attaches and shows after redirect
+- [x] 4.5 Free-text add attaches AND appears in `/plugins-catalog`
+- [x] 4.6 Re-adding a plugin shows the duplicate message, not a 500
+- [x] 4.7 Remove → confirm removes; reload confirms persistence
+- [x] 4.8 Deleting the project cascades the junction rows away
