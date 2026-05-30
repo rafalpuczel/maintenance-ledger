@@ -313,16 +313,16 @@ None — no schema change, no migration, no persisted PDF state. Pure code addit
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npx astro check`
-- [x] 3.2 Build succeeds: `npm run build`
-- [x] 3.3 Lint passes: `npm run lint`
-- [x] 3.4 Existing + new unit tests pass: `npm test`
+- [x] 3.1 Type checking passes: `npx astro check` — 91e3561
+- [x] 3.2 Build succeeds: `npm run build` — 91e3561
+- [x] 3.3 Lint passes: `npm run lint` — 91e3561
+- [x] 3.4 Existing + new unit tests pass: `npm test` — 91e3561
 
 #### Manual
 
-- [x] 3.5 "Download PDF" link downloads `<project-slug>-<month>.pdf` as the branded report
-- [x] 3.6 Partially-filled report's PDF shows only filled sections, reflecting the latest save
-- [x] 3.7 Brand unset → default colors + no logo; brand set → real logo + colors
-- [x] 3.8 Unauthenticated `GET /api/reports/{id}/pdf` is rejected by middleware
-- [x] 3.9 Normal save still redirects `?ok=saved`; save→download round trip under 5 s
-- [x] 3.10 `wrangler deploy` exits 0 and the live route returns `application/pdf`
+- [x] 3.5 "Download PDF" link downloads `<project-slug>-<month>.pdf` as the branded report — 91e3561
+- [x] 3.6 Partially-filled report's PDF shows only filled sections, reflecting the latest save — 91e3561
+- [x] 3.7 Brand unset → default colors + no logo; brand set → real logo + colors — 91e3561
+- [x] 3.8 Unauthenticated `GET /api/reports/{id}/pdf` is rejected by middleware — 91e3561
+- [x] 3.9 Normal save still redirects `?ok=saved`; save→download round trip under 5 s — 91e3561
+- [x] 3.10 `wrangler deploy` exits 0 and the live route returns `application/pdf` — 91e3561

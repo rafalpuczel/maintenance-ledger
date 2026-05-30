@@ -1,7 +1,7 @@
 ---
 change_id: branded-pdf-on-save
 title: Branded PDF on save
-status: implementing
+status: implemented
 created: 2026-05-30
 updated: 2026-05-30
 archived_at: null
