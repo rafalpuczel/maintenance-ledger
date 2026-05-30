@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       brand_settings: {
@@ -172,6 +167,74 @@ export type Database = {
           url?: string | null
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          fixes_applied: string | null
+          id: string
+          integrity_issues: string | null
+          integrity_status: string | null
+          licenses: Json
+          month: string
+          notes_to_client: string | null
+          php_from_version: string | null
+          php_to_version: string | null
+          php_updated: boolean
+          plugins: Json
+          project_id: string
+          themes: Json
+          updated_at: string
+          wp_core_updated: boolean
+          wp_core_version: string | null
+        }
+        Insert: {
+          created_at?: string
+          fixes_applied?: string | null
+          id?: string
+          integrity_issues?: string | null
+          integrity_status?: string | null
+          licenses?: Json
+          month: string
+          notes_to_client?: string | null
+          php_from_version?: string | null
+          php_to_version?: string | null
+          php_updated?: boolean
+          plugins?: Json
+          project_id: string
+          themes?: Json
+          updated_at?: string
+          wp_core_updated?: boolean
+          wp_core_version?: string | null
+        }
+        Update: {
+          created_at?: string
+          fixes_applied?: string | null
+          id?: string
+          integrity_issues?: string | null
+          integrity_status?: string | null
+          licenses?: Json
+          month?: string
+          notes_to_client?: string | null
+          php_from_version?: string | null
+          php_to_version?: string | null
+          php_updated?: boolean
+          plugins?: Json
+          project_id?: string
+          themes?: Json
+          updated_at?: string
+          wp_core_updated?: boolean
+          wp_core_version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
