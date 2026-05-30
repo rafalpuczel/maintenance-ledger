@@ -36,9 +36,9 @@ Maintenance reports for client WordPress retainers are produced today through a 
 | S-03  | plugins-catalog            | manage the global predefined plugins catalog                    | F-01                   | FR-003                                         | done     |
 | S-04  | pm-contact-list            | manage the PM contact list (name + email)                       | F-01                   | FR-004                                         | done     |
 | S-05  | project-recurring-plugins  | compose a project's recurring plugins list                      | S-01, S-03             | FR-009                                         | done     |
-| S-06  | report-authoring           | author a report's fixed sections (CRUD + row repeaters, recurring-seeded) | F-01, S-01, S-03, S-05 | FR-010, FR-011, FR-012, FR-013, FR-014, FR-016, US-01 | proposed |
-| S-07  | wp-cli-bulk-paste          | bulk-paste a WP-CLI table into the plugins/themes repeaters     | S-06                   | FR-015, US-01                                  | proposed |
-| S-08  | branded-pdf-on-save        | get a branded PDF on every save + a visible download link       | S-06, F-02, S-02       | FR-017, FR-018, US-01                          | proposed |
+| S-06  | report-authoring           | author a report's fixed sections (CRUD + row repeaters, recurring-seeded) | F-01, S-01, S-03, S-05 | FR-010, FR-011, FR-012, FR-013, FR-014, FR-016, US-01 | done     |
+| S-07  | wp-cli-bulk-paste          | bulk-paste a WP-CLI table into the plugins/themes repeaters     | S-06                   | FR-015, US-01                                  | done     |
+| S-08  | branded-pdf-on-save        | get a branded PDF on every save + a visible download link       | S-06, F-02, S-02       | FR-017, FR-018, US-01                          | done     |
 | S-09  | report-email-send          | send the branded PDF to the PM and the client (north star)      | S-08, S-04             | FR-019, FR-020, FR-021, US-01                  | proposed |
 
 ## Streams
@@ -163,7 +163,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The largest surface in the roadmap (9 section types + three row repeaters + seeding + catalog integration) — `/10x-plan` may legitimately split this into multiple changes. Post-send edits are explicitly allowed (no locking on send); the resulting PDF-vs-stored-data divergence is an accepted MVP trade (Open Roadmap Question 2). PDF generation is deliberately *not* here — it lands in S-08 so this slice stays a pure authoring surface.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: WP-CLI bulk-paste
 
@@ -175,7 +175,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** Exact WP-CLI table format to pin (column order / whitespace of the targeted `wp plugin update --all` version)? Owner: team. Block: no — the single-row fallback de-risks a wrong guess, and multi-format auto-detection is explicitly out of scope.
 - **Risk:** The parser is fragile by design (FR-015 accepts this): pin one documented format, lean on the single-row fallback. Worth its own slice so the parser can be unit-tested in isolation rather than entangled with the S-06 form.
-- **Status:** proposed
+- **Status:** done
 
 ### S-08: Branded PDF on save + download
 
@@ -187,7 +187,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Productionizes the F-02 pipeline against real report data and the real brand. Two guardrails are enforced here: empty-section hiding (no headers, no "none" placeholders), and the no-leak NFR — internal notes and the project contact email must never appear in the client-facing PDF unless transcribed into "notes to client." Watch p95 against the 5 s NFR on real-shaped reports; upgrade to Workers Paid at the first timeout (R3). Synchronous PDF-on-save is the chosen mental model despite its latency cost.
-- **Status:** proposed
+- **Status:** done
 
 ### S-09: Send report to PM and client  ← north star
 
