@@ -122,12 +122,12 @@ None. No data, schema, or persisted artifacts are involved. The change is forwar
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`npm run typecheck` / `astro check`)
-- [x] 1.2 Linting passes (`npm run lint`)
-- [x] 1.3 Build succeeds (`npm run build`)
+- [x] 1.1 Type checking passes (`npm run typecheck` / `astro check`) — 76a32e0
+- [x] 1.2 Linting passes (`npm run lint`) — 76a32e0
+- [x] 1.3 Build succeeds (`npm run build`) — 76a32e0
 
 #### Manual
 
-- [x] 1.4 "View PDF" opens the PDF inline in a new tab (not a download); report tab stays open
-- [x] 1.5 Rendered PDF is correct (brand + content + empty sections hidden), bytes unchanged
-- [x] 1.6 "Send to PM" / "Send to client" still attaches the PDF (email path unaffected)
+- [x] 1.4 "View PDF" opens the PDF inline in a new tab (not a download); report tab stays open — 76a32e0
+- [x] 1.5 Rendered PDF is correct (brand + content + empty sections hidden), bytes unchanged — 76a32e0
+- [x] 1.6 "Send to PM" / "Send to client" still attaches the PDF (email path unaffected) — 76a32e0
