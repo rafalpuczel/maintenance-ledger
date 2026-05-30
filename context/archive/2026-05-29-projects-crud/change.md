@@ -1,10 +1,10 @@
 ---
-change_id: project-recurring-plugins
-title: Project recurring plugins
-status: implemented
-created: 2026-05-30
+change_id: projects-crud
+title: Projects crud
+status: archived
+created: 2026-05-29
 updated: 2026-05-30
-archived_at: null
+archived_at: 2026-05-30T12:02:18Z
 ---
 
 ## Notes

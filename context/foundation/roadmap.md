@@ -3,7 +3,7 @@ project: "Maintenance Ledger"
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-05-25
+updated: 2026-05-30
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -29,13 +29,13 @@ Maintenance reports for client WordPress retainers are produced today through a 
 
 | ID    | Change ID                  | Outcome (user can …)                                            | Prerequisites          | PRD refs                                       | Status   |
 | ----- | -------------------------- | --------------------------------------------------------------- | ---------------------- | ---------------------------------------------- | -------- |
-| F-01  | shared-credential-auth     | (foundation) shared-credential login works; every non-login route requires a session | —          | FR-001                                         | ready    |
-| F-02  | pdf-render-pipeline        | (foundation) a branded PDF renders on workerd within the 5 s budget, empty sections hidden | —      | FR-017                                         | ready    |
-| S-01  | projects-crud              | create, list, edit, and delete projects                         | F-01                   | FR-005, FR-006, FR-007, FR-008                 | proposed |
-| S-02  | brand-settings             | upload/replace a logo and set brand colors                      | F-01                   | FR-002                                         | proposed |
-| S-03  | plugins-catalog            | manage the global predefined plugins catalog                    | F-01                   | FR-003                                         | proposed |
-| S-04  | pm-contact-list            | manage the PM contact list (name + email)                       | F-01                   | FR-004                                         | proposed |
-| S-05  | project-recurring-plugins  | compose a project's recurring plugins list                      | S-01, S-03             | FR-009                                         | proposed |
+| F-01  | shared-credential-auth     | (foundation) shared-credential login works; every non-login route requires a session | —          | FR-001                                         | done     |
+| F-02  | pdf-render-pipeline        | (foundation) a branded PDF renders on workerd within the 5 s budget, empty sections hidden | —      | FR-017                                         | done     |
+| S-01  | projects-crud              | create, list, edit, and delete projects                         | F-01                   | FR-005, FR-006, FR-007, FR-008                 | done     |
+| S-02  | brand-settings             | upload/replace a logo and set brand colors                      | F-01                   | FR-002                                         | done     |
+| S-03  | plugins-catalog            | manage the global predefined plugins catalog                    | F-01                   | FR-003                                         | done     |
+| S-04  | pm-contact-list            | manage the PM contact list (name + email)                       | F-01                   | FR-004                                         | done     |
+| S-05  | project-recurring-plugins  | compose a project's recurring plugins list                      | S-01, S-03             | FR-009                                         | done     |
 | S-06  | report-authoring           | author a report's fixed sections (CRUD + row repeaters, recurring-seeded) | F-01, S-01, S-03, S-05 | FR-010, FR-011, FR-012, FR-013, FR-014, FR-016, US-01 | proposed |
 | S-07  | wp-cli-bulk-paste          | bulk-paste a WP-CLI table into the plugins/themes repeaters     | S-06                   | FR-015, US-01                                  | proposed |
 | S-08  | branded-pdf-on-save        | get a branded PDF on every save + a visible download link       | S-06, F-02, S-02       | FR-017, FR-018, US-01                          | proposed |
@@ -76,7 +76,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** How to resist automated credential-stuffing on workerd without locking out a legitimate user who mistypes 3× — KV-backed throttle vs. Cloudflare Turnstile vs. rate-limit binding? Owner: team. Block: no.
 - **Risk:** Sequenced first because it is the universal gate. Main hazard is leaving dead Supabase-Auth code paths after the rip-out (signin/signup/confirm-email pages, middleware `getUser`), and getting the credential-stuffing-vs-no-lockout NFR balance right. Doing it first means no other slice is built against the wrong auth model.
-- **Status:** ready
+- **Status:** done
 
 ### F-02: PDF rendering pipeline proven on workerd
 
@@ -89,7 +89,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** Does FormePDF hold the 5 s p95 on the free-tier 10 ms CPU budget for a real-shaped report, or is the Workers Paid plan ($5/mo, 30 s CPU) required from day one? Owner: team. Block: no — the spike *is* how this is answered; if FormePDF fails on workerd, the fallback is Cloudflare Browser Rendering (paid, ~1–2 s overhead) and the cost is far lower discovered now than in week 3.
 - **Risk:** This is risk-insurance, not user-visible work. It exists because R1 is the highest-impact unknown in the project and the pre-mortem describes building everything then discovering the PDF path is dead. Proving (or breaking) the FormePDF-on-workerd assumption before CRUD work is sunk is the single most valuable early move under a fixed deadline.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -103,7 +103,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** First domain entity; establishes the Supabase migration + `@supabase/supabase-js`-over-HTTP data pattern (per CLAUDE.md: never `pg` from a Worker) that every later slice copies. Mostly plumbing; low risk. Hard delete is intentional (soft delete is parked).
-- **Status:** proposed
+- **Status:** done
 
 ### S-02: Brand settings
 
@@ -115,7 +115,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** Logo storage target — Cloudflare Images (the `env.IMAGES` binding is already provisioned per deploy-plan) vs. Supabase Storage? Owner: team. Block: no.
 - **Risk:** Logo upload introduces the one non-trivial bit (binary/file storage on the edge); colors are trivial. Single agency brand only — per-project brand override is parked.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Plugins catalog
 
@@ -127,7 +127,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The auto-promote rule (a free-text plugin name typed on a report row is added to the catalog) couples this slice to S-06; keep that promote hook a thin write so S-06 can call it. Low risk otherwise.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: PM contact list
 
@@ -139,7 +139,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Simplest CRUD surface in the system. Feeds S-09's PM picker; can be built any time before S-09. PMs are contacts, not user accounts (no login) — keep it that way.
-- **Status:** proposed
+- **Status:** done
 
 ### S-05: Project recurring plugins list
 
@@ -151,7 +151,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Bridges catalog → project → report seeding and delivers the Secondary Success Criterion (no re-entering the same plugin rows each cycle). The *seeding into a new report* behavior is realized in S-06; this slice only delivers list composition, so keep the read contract simple for S-06 to consume.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Report authoring
 
@@ -248,4 +248,10 @@ Lifted from PRD `## Non-Goals` — explicitly out of MVP scope (post-MVP unless 
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends an entry here — and flips that item's `Status` to `done` — when a change whose `Change ID` matches an item is archived. Do NOT pre-populate.)
+- **F-01: (foundation) the shared-credential login works against the provisioned `SHARED_USERNAME` / `SHARED_PASSWORD_HASH`, an HMAC-signed session cookie is issued and verified, and every route except the login page redirects unauthenticated visitors** — Archived 2026-05-30 → `context/archive/2026-05-26-shared-credential-auth/`. Lesson: —.
+- **F-02: (foundation) FormePDF renders the fixed agency-branded report template to a `Uint8Array` on the deployed Cloudflare Workers runtime within the 5 s p95 NFR** — Archived 2026-05-30 → `context/archive/2026-05-28-pdf-render-pipeline/`. Lesson: —.
+- **S-01: user can create a project, view a list of all projects, edit any field, and hard-delete a project** — Archived 2026-05-30 → `context/archive/2026-05-29-projects-crud/`. Lesson: —.
+- **S-02: user can upload/replace the agency logo and set brand colors** — Archived 2026-05-30 → `context/archive/2026-05-29-brand-settings/`. Lesson: —.
+- **S-03: user can add / edit / remove entries in the global predefined plugins catalog** — Archived 2026-05-30 → `context/archive/2026-05-29-plugins-catalog/`. Lesson: —.
+- **S-04: user can add / edit / remove PM contacts (name + email)** — Archived 2026-05-30 → `context/archive/2026-05-29-pm-contact-list/`. Lesson: —.
+- **S-05: user can compose a project's recurring plugins list by picking from the global catalog and optionally adding free-text entries** — Archived 2026-05-30 → `context/archive/2026-05-30-project-recurring-plugins/`. Lesson: zod v4 `z.uuid()` over deprecated `z.string().uuid()`; pre-commit `eslint --fix` only lints staged files so run full `npm run lint`.

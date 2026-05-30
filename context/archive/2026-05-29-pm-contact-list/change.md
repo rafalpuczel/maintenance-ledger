@@ -1,10 +1,10 @@
 ---
-change_id: projects-crud
-title: Projects crud
-status: implemented
+change_id: pm-contact-list
+title: PM contact list
+status: archived
 created: 2026-05-29
-updated: 2026-05-29
-archived_at: null
+updated: 2026-05-30
+archived_at: 2026-05-30T12:02:18Z
 ---
 
 ## Notes
