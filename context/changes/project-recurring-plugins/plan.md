@@ -293,9 +293,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [x] 1.1 Migration pushes cleanly: `npm run db:push`
-- [x] 1.2 Types regenerate and include `project_recurring_plugins`: `npm run db:types`
-- [x] 1.3 Type check / build passes: `npm run build`
+- [x] 1.1 Migration pushes cleanly: `npm run db:push` — 90a6282
+- [x] 1.2 Types regenerate and include `project_recurring_plugins`: `npm run db:types` — 90a6282
+- [x] 1.3 Type check / build passes: `npm run build` — 90a6282
 
 #### Manual
 
@@ -305,9 +305,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [ ] 2.1 Build passes: `npm run build`
-- [ ] 2.2 Lint passes (exit code 0): `npm run lint`
-- [ ] 2.3 Tests pass: `npm test`
+- [x] 2.1 Build passes: `npm run build`
+- [x] 2.2 Lint passes (exit code 0): `npm run lint`
+- [x] 2.3 Tests pass: `npm test`
 
 #### Manual
 
@@ -317,9 +317,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [ ] 3.1 Build passes: `npm run build`
-- [ ] 3.2 Lint passes (exit code 0): `npm run lint`
-- [ ] 3.3 Tests pass: `npm test`
+- [x] 3.1 Build passes: `npm run build`
+- [x] 3.2 Lint passes (exit code 0): `npm run lint`
+- [x] 3.3 Tests pass: `npm test`
 
 #### Manual
 
@@ -329,9 +329,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [ ] 4.1 Build passes: `npm run build`
-- [ ] 4.2 Lint passes (exit code 0): `npm run lint`
-- [ ] 4.3 Tests pass: `npm test`
+- [x] 4.1 Build passes: `npm run build`
+- [x] 4.2 Lint passes (exit code 0): `npm run lint`
+- [x] 4.3 Tests pass: `npm test`
 
 #### Manual
 

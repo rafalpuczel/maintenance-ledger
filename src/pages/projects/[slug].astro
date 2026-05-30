@@ -2,19 +2,34 @@
 import Layout from "@/layouts/Layout.astro";
 import ProjectForm from "@/components/projects/ProjectForm";
 import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
+import RecurringPlugins from "@/components/project-recurring-plugins/RecurringPlugins";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
+import { listCatalog } from "@/lib/plugins-catalog/queries";
+import { listRecurringPlugins } from "@/lib/project-recurring-plugins/queries";
 
 const slug = Astro.params.slug ?? "";
-const project = await getProjectBySlug(createSupabaseClient(), slug);
+const client = createSupabaseClient();
+const project = await getProjectBySlug(client, slug);
 
 if (!project) {
   return Astro.redirect("/projects?error=Project%20not%20found");
 }
 
+const [recurring, catalog] = await Promise.all([listRecurringPlugins(client, project.id), listCatalog(client)]);
+
 const error = Astro.url.searchParams.get("error");
 const ok = Astro.url.searchParams.get("ok");
-const okMessage = ok === "created" ? "Project created." : ok === "updated" ? "Changes saved." : null;
+const okMessage =
+  ok === "created"
+    ? "Project created."
+    : ok === "updated"
+      ? "Changes saved."
+      : ok === "plugin-added"
+        ? "Plugin added to the recurring list."
+        : ok === "plugin-removed"
+          ? "Plugin removed from the recurring list."
+          : null;
 ---
 
 <Layout title={project.name}>
@@ -52,6 +67,21 @@ const okMessage = ok === "created" ? "Project created." : ok === "updated" ? "Ch
           client:load
         />
       </div>
+
+      <section class="mt-8">
+        <h2 class="mb-1 text-lg font-semibold">Recurring plugins</h2>
+        <p class="mb-4 text-sm text-blue-100/60">
+          These plugins pre-fill every new report for this project. Pick from the catalog or add a new name.
+        </p>
+        <RecurringPlugins
+          projectId={project.id}
+          slug={project.slug}
+          recurring={recurring}
+          catalog={catalog.map((c) => ({ id: c.id, name: c.name }))}
+          serverError={error}
+          client:load
+        />
+      </section>
     </div>
   </div>
 </Layout>

@@ -1,7 +1,7 @@
 ---
 change_id: project-recurring-plugins
 title: Project recurring plugins
-status: implementing
+status: implemented
 created: 2026-05-30
 updated: 2026-05-30
 archived_at: null
