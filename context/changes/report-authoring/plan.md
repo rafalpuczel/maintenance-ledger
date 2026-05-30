@@ -388,7 +388,7 @@ Forward-only migration; no existing report data to migrate (greenfield table). L
 
 #### Manual
 
-- [ ] 1.5 `reports` table verified in Supabase Studio (columns, JSONB defaults, FK cascade)
+- [x] 1.5 `reports` table verified in Supabase Studio (columns, JSONB defaults, FK cascade)
 
 ### Phase 2: Data layer
 
@@ -416,24 +416,24 @@ Forward-only migration; no existing report data to migrate (greenfield table). L
 
 #### Manual
 
-- [ ] 4.4 "New report" creates a report and lands on its edit page; appears in the project's report list
-- [ ] 4.5 Report list shows month + date newest-first; open works; bad id redirects with error
-- [ ] 4.6 Delete removes the report and returns to the project with confirmation
-- [ ] 4.7 New report's `plugins` JSONB seeded from the project's recurring list (verify in Studio)
+- [x] 4.4 "New report" creates a report and lands on its edit page; appears in the project's report list
+- [x] 4.5 Report list shows month + date newest-first; open works; bad id redirects with error
+- [x] 4.6 Delete removes the report and returns to the project with confirmation
+- [x] 4.7 New report's `plugins` JSONB seeded from the project's recurring list (verify in Studio)
 
 ### Phase 5: Authoring form & repeater islands
 
 #### Automated
 
-- [x] 5.1 Type checking passes (`npx astro check`)
-- [x] 5.2 Linting passes by exit code (`npm run lint`)
-- [x] 5.3 Build passes (`npm run build`)
+- [x] 5.1 Type checking passes (`npx astro check`) — 7feeda2
+- [x] 5.2 Linting passes by exit code (`npm run lint`) — 7feeda2
+- [x] 5.3 Build passes (`npm run build`) — 7feeda2
 
 #### Manual
 
-- [ ] 5.4 Full round-trip: create → seeded rows visible → fill every section → Save → reload → values intact
-- [ ] 5.5 Add/remove rows in all three repeaters; saved arrays match screen; unchecked "updated" persists as `false`
-- [ ] 5.6 All-empty report saves and reloads cleanly (`[]` / null)
-- [ ] 5.7 Free-text plugin name auto-promotes into the catalog on save
-- [ ] 5.8 Re-save an already-saved report; changes persist; no locking
-- [ ] 5.9 No project internal notes / contact email leak into the report data unless typed into "notes to client"
+- [x] 5.4 Full round-trip: create → seeded rows visible → fill every section → Save → reload → values intact
+- [x] 5.5 Add/remove rows in all three repeaters; saved arrays match screen; unchecked "updated" persists as `false`
+- [x] 5.6 All-empty report saves and reloads cleanly (`[]` / null)
+- [x] 5.7 Free-text plugin name auto-promotes into the catalog on save
+- [x] 5.8 Re-save an already-saved report; changes persist; no locking
+- [x] 5.9 No project internal notes / contact email leak into the report data unless typed into "notes to client"
