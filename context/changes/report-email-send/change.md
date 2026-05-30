@@ -1,7 +1,7 @@
 ---
 change_id: report-email-send
 title: Report email send
-status: implementing
+status: implemented
 created: 2026-05-30
 updated: 2026-05-30
 archived_at: null

@@ -274,7 +274,7 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Manual
 
-- [ ] 1.5 Hand-inserted `report_sends` rows → `getSendSummary` returns expected latest-per-recipient shape
+- [x] 1.5 Hand-inserted `report_sends` rows → `getSendSummary` returns expected latest-per-recipient shape — verified in prod
 
 ### Phase 2: Email dispatch + send route
 
@@ -286,10 +286,10 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Manual
 
-- [ ] 2.4 Client send (smoke key) → email with PDF arrives; `report_sends` row exists
-- [ ] 2.5 PM send → email arrives; row recorded with `pm_contact_id`
-- [ ] 2.6 Invalid key → `?error=…` redirect and NO `report_sends` row (record-on-success)
-- [ ] 2.7 Client send with null `contact_email` → `?error=No client email…`, no send, no row
+- [x] 2.4 Client send (smoke key) → email with PDF arrives; `report_sends` row exists — verified in prod
+- [x] 2.5 PM send → email arrives; row recorded with `pm_contact_id` — verified in prod
+- [x] 2.6 Invalid key → `?error=…` redirect and NO `report_sends` row (record-on-success) — verified in prod
+- [x] 2.7 Client send with null `contact_email` → `?error=No client email…`, no send, no row — verified in prod
 
 ### Phase 3: Send UI on the report page
 
@@ -301,9 +301,9 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Manual
 
-- [ ] 3.4 Send to client: enabled → sends → success banner + inline timestamp + relabel to Re-send
-- [ ] 3.5 Re-send to client: confirm dialog shows prior timestamp; confirming updates it
-- [ ] 3.6 Send to PM: picker → select → send → inline line + relabel; re-send pre-selects last PM
-- [ ] 3.7 No client email → Send to client disabled with hint
-- [ ] 3.8 No PM contacts → Send to PM disabled with Settings hint
-- [ ] 3.9 Forced failure → error banner; buttons stay in first-send state (no phantom timestamp)
+- [x] 3.4 Send to client: enabled → sends → success banner + inline timestamp + relabel to Re-send — verified in prod
+- [x] 3.5 Re-send to client: confirm dialog shows prior timestamp; confirming updates it — verified in prod
+- [x] 3.6 Send to PM: picker → select → send → inline line + relabel; re-send pre-selects last PM — verified in prod
+- [x] 3.7 No client email → Send to client disabled with hint — verified in prod
+- [x] 3.8 No PM contacts → Send to PM disabled with Settings hint — verified in prod
+- [x] 3.9 Forced failure → error banner; buttons stay in first-send state (no phantom timestamp) — verified in prod
