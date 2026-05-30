@@ -1,10 +1,10 @@
 ---
 change_id: report-authoring
 title: Report authoring
-status: implemented
+status: archived
 created: 2026-05-30
 updated: 2026-05-30
-archived_at: null
+archived_at: 2026-05-30T15:50:28Z
 ---
 
 ## Notes
