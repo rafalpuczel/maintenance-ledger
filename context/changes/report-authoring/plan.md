@@ -394,17 +394,17 @@ Forward-only migration; no existing report data to migrate (greenfield table). L
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`npx astro check`)
-- [x] 2.2 Linting passes by exit code (`npm run lint`)
-- [x] 2.3 Build passes (`npm run build`)
+- [x] 2.1 Type checking passes (`npx astro check`) — 9a3c295
+- [x] 2.2 Linting passes by exit code (`npm run lint`) — 9a3c295
+- [x] 2.3 Build passes (`npm run build`) — 9a3c295
 
 ### Phase 3: API routes
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`npx astro check`)
-- [ ] 3.2 Linting passes by exit code (`npm run lint`)
-- [ ] 3.3 Build passes (`npm run build`)
+- [x] 3.1 Type checking passes (`npx astro check`)
+- [x] 3.2 Linting passes by exit code (`npm run lint`)
+- [x] 3.3 Build passes (`npm run build`)
 
 ### Phase 4: Report list & navigation
 
