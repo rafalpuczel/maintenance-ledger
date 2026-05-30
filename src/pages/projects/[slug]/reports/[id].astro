@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import DeleteReportButton from "@/components/reports/DeleteReportButton";
+import ReportForm from "@/components/reports/ReportForm";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -54,9 +55,28 @@ const catalogNames = catalog.map((c) => c.name);
         <p class="text-sm text-blue-100/60">{project.name}</p>
       </div>
 
-      <div data-report-form-slot data-catalog={JSON.stringify(catalogNames)} data-error={error ?? ""}>
-        <!-- ReportForm island mounts here in Phase 5 -->
-      </div>
+      <ReportForm
+        action={`/api/reports/${report.id}`}
+        slug={project.slug}
+        month={report.month}
+        catalogNames={catalogNames}
+        serverError={error}
+        initial={{
+          wp_core_version: report.wp_core_version,
+          wp_core_updated: report.wp_core_updated,
+          php_updated: report.php_updated,
+          php_from_version: report.php_from_version,
+          php_to_version: report.php_to_version,
+          integrity_status: report.integrity_status,
+          integrity_issues: report.integrity_issues,
+          fixes_applied: report.fixes_applied,
+          notes_to_client: report.notes_to_client,
+          plugins: report.plugins,
+          themes: report.themes,
+          licenses: report.licenses,
+        }}
+        client:load
+      />
     </div>
   </div>
 </Layout>

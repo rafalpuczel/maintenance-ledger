@@ -1,5 +1,5 @@
-import type { ReportInput } from "@/lib/reports/schema";
-import { reportInputSchema } from "@/lib/reports/schema";
+import type { ReportInput } from "./schema";
+import { reportInputSchema } from "./schema";
 
 export type ParseResult = { ok: true; data: ReportInput } | { ok: false; message: string };
 

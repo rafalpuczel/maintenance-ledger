@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
-import type { LicenseRow, PluginRow, ReportInput, ThemeRow } from "@/lib/reports/schema";
+import type { LicenseRow, PluginRow, ReportInput, ThemeRow } from "./schema";
 import { listRecurringPlugins } from "@/lib/project-recurring-plugins/queries";
 import { promoteToCatalog } from "@/lib/plugins-catalog/queries";
 
