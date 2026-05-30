@@ -286,13 +286,13 @@ None — no schema change, no migration, no persisted PDF state. Pure code addit
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro check`
-- [x] 1.2 Build succeeds with the wasm import bundled: `npm run build`
-- [x] 1.3 Lint passes: `npm run lint`
+- [x] 1.1 Type checking passes: `npx astro check` — f9ef064
+- [x] 1.2 Build succeeds with the wasm import bundled: `npm run build` — f9ef064
+- [x] 1.3 Lint passes: `npm run lint` — f9ef064
 
 #### Manual
 
-- [x] 1.4 A trivial `renderReportPdf` call on local workerd returns a valid PDF (init + wasm bundle confirmed)
+- [x] 1.4 A trivial `renderReportPdf` call on local workerd returns a valid PDF (init + wasm bundle confirmed) — f9ef064
 
 ### Phase 2: Branded Report Template + Section-Visibility Module
 
