@@ -1,245 +1,191 @@
 ---
 project: "Maintenance Ledger"
-context_type: greenfield
+context_type: brownfield
 product_type: web-app
 target_scale:
   users: small
   qps: low
   data_volume: small
 timeline_budget:
-  mvp_weeks: 3
-  hard_deadline: 2026-06-09
+  delivery_weeks: 2
+  hard_deadline: null
   after_hours_only: true
-created: 2026-05-19
-updated: 2026-05-19
+created: 2026-05-30
+updated: 2026-05-30
 checkpoint:
   current_phase: 8
   phases_completed: [1, 2, 3, 4, 5, 6, 7]
   gray_areas_resolved:
-    - topic: "primary user of MVP"
-      decision: "anyone with the shared login — single agency team uses one credential set. Roles and multi-user are post-MVP."
-    - topic: "tenancy"
-      decision: "single-tenant single-user shared login for MVP; multi-tenant + roles deferred to post-MVP"
-    - topic: "workflow fit / input source"
-      decision: "WP-CLI table output is the canonical paste source for plugin/theme/core updates"
-    - topic: "authentication shape"
-      decision: "single shared login; credentials (login / password / shared secret) live in environment variables set at deploy; no per-user accounts, no invitations, no activation flow"
-    - topic: "PM directory"
-      decision: "PMs are NOT user accounts — they are a settings-maintained contact list (name + email). 'Send to PM' picks from this list when sending a report."
-    - topic: "send flow"
-      decision: "two outbound buttons per report: 'Send to PM' (pick from PM contact list) and 'Send to client' (sends to the project's contact email). Both attach the branded PDF."
-    - topic: "email body"
-      decision: "fixed transactional template for MVP. Editable email body template is post-MVP."
-    - topic: "PDF scope for MVP"
-      decision: "one fixed template, branded with logo + 1–2 brand colors; section visibility driven by content (empty sections hidden); no preview, no template variants. PDF preview is post-MVP."
-  frs_drafted: 21
+    - topic: "process / slicing"
+      decision: "shape all 4 improvements together, then /10x-plan each as its own slice (4 slices A–D; A may sub-split in planning)"
+    - topic: "responsive + accessibility"
+      decision: "FULL responsive layout + WCAG-AA accessibility pass — REVERSES the MVP Non-Goals 'mobile-responsive layout' and 'WCAG-AA accessibility'"
+    - topic: "email template flexibility"
+      decision: "SEPARATE PM and client templates (two editable subject/body pairs), both with placeholder support ({{project}}, {{month}}, {{agency}}) interpolated at send time — REVERSES the MVP Non-Goal 'Editable email body templates'"
+    - topic: "visual direction"
+      decision: "switch to a LIGHT, professional B2B aesthetic (Linear/Stripe dashboard style), away from the current dark 'cosmic' gradient theme; use the frontend-design skill"
+    - topic: "PDF open behavior"
+      decision: "open the PDF inline in a NEW browser tab on download-button click; keep a separate explicit download affordance (content-disposition attachment → inline + target=_blank)"
+    - topic: "homepage"
+      decision: "real work dashboard at home (recent projects + recent reports + quick actions + settings links); replaces the starter Welcome splash and the thin /dashboard card"
+    - topic: "async depth"
+      decision: "full SPA-like optimistic UI (fetch + spinners; list/repeater mutations reflect immediately and roll back on error), not just spinners on POST→redirect"
+    - topic: "extras scope"
+      decision: "fold toasts, consistent destructive-confirm dialogs, and empty-states/skeletons INTO Slices A/B as part of 'making it a real product'; do NOT expand beyond the 4 items into separate extra slices"
+  frs_drafted: 0
   quality_check_status: accepted
 ---
 
+## Current System Overview
+
+**System purpose (one sentence):** Maintenance Ledger collapses the agency's WordPress-retainer reporting pipeline (dev notes → PM reformat in Google Docs → PDF → email) into one in-app flow — author the report, get a deterministic agency-branded PDF, send it to the PM and the client.
+
+**Status:** feature-complete MVP. Roadmap slices F-01–F-02 and S-01–S-09 (the north star, `report-email-send`) are all shipped and archived as of 2026-05-30. This brownfield round is a post-MVP improvement pass, not new core functionality.
+
+**Key architecture:** serverless / edge. Astro 5 SSR app deployed to Cloudflare Workers (Static Assets; deploy via `wrangler deploy`, never `wrangler pages deploy`). React islands for interactive surfaces (`client:load`). Shared-credential HMAC session cookie gates every route except `/login` via `src/middleware.ts`.
+
+**Tech stack:**
+- Frontend: Astro 5 + React 19 islands + Tailwind CSS v4 (shadcn-style design tokens in `src/styles/global.css`; lucide-react icons; a `bg-cosmic` dark-gradient utility is the current theme).
+- Forms: native HTML `<form method="POST">` → API route → 303 redirect back with `?ok=`/`?error=` query flags. React islands do client-side zod validation and use `useFormStatus` for a pending label, but the navigation itself is a full-page POST/redirect (no fetch/async).
+- Backend / API: Astro `.ts` API routes under `src/pages/api/**`. Data access via `@supabase/supabase-js` over HTTP/PostgREST (never `pg` from a Worker). Per-domain pattern: client factory (`src/lib/supabase.ts`) + query module (`src/lib/<domain>/queries.ts`) + zod schema (`schema.ts`) + form mapper (`form.ts`).
+- PDF: FormePDF (`@formepdf/react` + `@formepdf/core`) rendering on workerd, requires Workers Paid. Render-on-demand at `GET /api/reports/[id]/pdf` (no bytes persisted).
+- Email: Resend, single hardcoded transactional template in `src/lib/email/send-report.ts` (subject + HTML body are string literals; PDF attached as chunked base64).
+- Auth: peppered Web Crypto HMAC shared-credential (`src/lib/auth/credentials.ts`); per-IP KV throttle; not bcrypt (CPU budget).
+- Data: Supabase Postgres; migrations + seeds run from a local Node process against the Supabase host.
+
+**Current user base:** a single agency team (~5 PMs + ~15 devs) sharing one login credential set. Small scale, low QPS. Desktop Chrome/Firefox/Safari/Edge only today.
+
+**Core functionality today:** shared-credential login; projects CRUD; brand settings (logo + colors); global plugins catalog; PM contact list; per-project recurring plugins; report authoring (fixed sections + plugins/themes/licenses repeaters, recurring-seeded, WP-CLI bulk-paste); branded PDF on save + download link; send report to PM and client with re-send guard + inline send history.
+
 ## Vision & Problem Statement
 
-Maintenance reports for client WordPress sites are produced today through a multi-handoff pipeline: the developer who performs the update round (WP core, plugins, themes, PHP) writes loose notes in Slack or Basecamp; a PM copies those notes into a Google Docs template, reformats them, exports a PDF, and emails the client with the PDF attached. Every maintenance cycle, for every retainer client, both roles spend time on the same artifact, format consistency drifts between PMs, and the agency depends on Google Docs as the de-facto template layer.
+The MVP works but looks and feels like an unstyled starter, not a product the agency is proud to use daily. Concretely, observed in the codebase:
 
-The market answer (ManageWP, MainWP, WP Umbrella, Patchstack reports) charges monthly per-site subscriptions, ships generic branding, and leaves the agency with a tool it does not own. Building this once internally removes a recurring cost, gives full control over branding and report shape, and removes the dev → PM copy-paste step entirely — the dev authors the report in its final shape, the PM reviews and sends.
+- **No real homepage.** `/` renders the Astro starter `Welcome.astro` splash; `/dashboard` is a single centered glass card with hand-rolled nav links.
+- **No shared navigation.** A `Topbar.astro` component exists but is imported by no page; every page re-implements its own back-links and sign-out. There is no consistent header across the app.
+- **Cramped, narrow layouts.** Every page is a centered card capped at `max-w-xl`/`2xl`/`3xl` on a dark gradient. The report detail page crams Download / Send-to-PM / Send-to-client / Delete into one flex row, and the disabled-button states leak warning text ("No client email — add one on the project", `SendToClientButton.tsx:44`; "No PM contacts — add one in Settings", `SendToPmButton.tsx:55`) as inline text that doesn't fit the button grid — this is the "broken inline text" the user called out. These belong in **tooltips**.
+- **Full-page reloads on every action.** Saving, sending, deleting all POST → redirect, so the screen flashes white and reloads instead of updating in place. There is no async feedback beyond a button label flip on the islands that do use `useFormStatus`.
+- **PDF forces a download** rather than opening in the browser for a quick look (`content-disposition: attachment`).
+- **Email body is frozen.** The subject and body are hardcoded; the agency cannot tailor the message to PMs vs clients.
+
+The insight: the product's *function* is done and validated, so the remaining gap is entirely **experience quality** — visual design, layout width, a shared shell, asynchronous interactions, and a couple of small capability gaps (inline PDF, editable email copy). This round deliberately reopens three MVP Non-Goals that were cut for the 3-week budget (mobile-responsive layout, WCAG-AA accessibility, editable email templates) now that the core is proven and there is room to invest in polish.
 
 ## User & Persona
 
-Primary persona: **agency team member maintaining client WordPress retainers** — split across two roles inside a single agency (5 PMs + 15 devs):
+Same primary persona as the MVP, experience-affected by this change:
 
-- **Developer** — runs the actual maintenance round on a client site (WP core, plugin, theme, PHP updates; integrity checks; fixes), then drafts the report. Currently writes loose notes in Slack / Basecamp. Pastes plugin/theme update tables from WP-CLI output. Wants minimal friction to author the report in its final shape so it doesn't need a second round of polishing.
-- **PM / team lead** — owns the client relationship, reviews reports, sends them to the client. Currently formats the dev's loose notes in Google Docs, exports PDF, sends email. Wants format consistency across the team and a single send button.
+- **Developer** (≈15) — authors reports; today tolerates the cramped report form and the full-page reloads. Benefits most from nicer/wider forms, async save with a spinner, button tooltips replacing the broken inline warnings, and inline-PDF preview to eyeball the render without a download round-trip.
+- **PM / team lead** (≈5) — reviews and sends reports; benefits from the shared header/nav (faster movement between projects/reports/settings), async send with clear in-progress + success feedback, and the editable per-recipient email templates (PMs and clients get appropriately different messaging).
 
-The MVP serves both at parity through a single shared flow: one editing surface, no copy-paste between tools, role-scoped permissions for review/send.
+No new persona is introduced. The full-responsive + a11y work widens *where* the existing personas can use the tool (phones/tablets, assistive tech) without adding a new user type.
 
-## Functional Requirements
+## Access Control Changes
 
-### Authentication
-- FR-001: User can sign in using the shared login credentials configured via environment variables (login + password). Priority: must-have. 
-  > Socratic: Counter-argument considered — "shared creds always leak (departing staff, screenshots in Slack, identical password for everyone)." Resolution: accepted for MVP as an explicit time-bounded trade. Mitigation is env-var rotation on staff changes / quarterly. Per-user accounts are post-MVP. Logged in Open Questions as a known accepted risk.
-The agency uses 1 pass for storing passord, foesnt share them in communication channels.
+**No access control changes — current model preserved.** The single shared-credential HMAC login continues to gate every route except `/login` (via `src/middleware.ts`). The new surfaces introduced here live behind that same gate:
 
-### Settings (global)
-- FR-002: User can view and edit brand settings — upload/replace a logo and set brand colors. Priority: must-have
-  > Socratic: Counter-argument considered — "agencies routinely white-label; per-client branding would be more valuable." Resolution: one agency brand only for MVP; this tool is for the agency's own reports. Per-project brand override is post-MVP.
-- FR-003: User can manage the global predefined plugins catalog — add / edit / remove entries (plugin name; optional notes). The catalog is the canonical source of plugin names used in two places: as the dropdown source when adding individual plugin rows to a report, AND as the pick-list when composing a project's recurring plugins (FR-009). Priority: must-have
-  > Socratic: Counter-argument considered — "a free-text plugin name field on each row would be simpler than a catalog." Resolution: the catalog exists so plugin names stay consistent across reports and so project recurring lists can reference a stable source. Manual free-text entry is still allowed where the catalog doesn't yet have the entry.
-There should also be an option to add plugin name manually on plugin row. When this happens the plugin name is added automatically to the global predefined plugins catalog as well.
-- FR-004: User can manage the PM contact list (add / edit / remove entries, each with name + email) used as the "Send to PM" recipient picker. Priority: must-have
-  > Socratic: Counter-argument considered — "PMs could be hardcoded in env vars to match the shared-login pattern." Resolution: PM list churns more than agency credentials do (clients reassigned between PMs, new hires). Editable in-app is cheap.
+- The new **work dashboard** (the redesigned `/` / home) is an authenticated route like every other non-login page.
+- The new **email configuration page** is global settings, editable by anyone with the shared login — identical to the existing brand-settings / PM-contacts / plugins-catalog model. No per-user identity, no roles, no audit trail (all post-MVP, unchanged).
 
-### Projects
-- FR-005: User can create a project with name, slug, URL, contact (company, name, email), and internal notes. Priority: must-have
-  > Socratic: Counter-argument considered — "fewer required fields would speed setup." Resolution: this is the minimum needed to identify the project, route the client email (contact), and brief whoever picks up the next report (internal notes). Internal notes can be left empty.
-- FR-006: User can view a list of all projects. Priority: must-have
-  > Socratic: Counter-argument considered — "list could be replaced by a recent-reports feed." Resolution: list is the primary nav surface for retainer work; non-recent projects must still be reachable without browsing reports.
-- FR-007: User can edit any field on an existing project. Priority: must-have
-  > Socratic: Counter-argument considered — "edits are rare; could defer." Resolution: client contact emails change, agency notes evolve, URLs migrate. Editable from day one.
-- FR-008: User can delete a project (hard delete; archive is post-MVP). Priority: must-have
-  > Socratic: Counter-argument considered — "hard delete destroys report history." Resolution: rare action; soft-delete is explicitly post-MVP per seed notes; accepted risk. If a project is deleted by mistake, restore is via DB backup.
-- FR-009: User can compose a project's recurring plugins list by (a) picking entries from the global plugins catalog (FR-003) and (b) optionally adding free-text entries not yet in the catalog. When a new report is created for that project, every entry in the project's recurring list is auto-seeded as a row in the plugins repeater on the new report. Priority: must-have
-  > Socratic: Counter-argument considered — "global preset only (copied to every new project at creation) is simpler than a per-project recurring list." Resolution: per-project lists allow client-specific stack tracking (some clients run extra plugins). The global catalog is reused as the pick-source, which gets most of the convenience anyway.
+No new auth mechanism, no sign-up, no role split. A logged-out visitor hitting any new route gets the same redirect-to-login behavior as today.
 
-### Reports
-- FR-010: User can create a new report on a project. Priority: must-have
-  > Socratic: Counter-argument considered — "could merge create and edit into one flow." Resolution: separate creation route lets the system seed recurring plugins (FR-009) and the current month/date at the right moment; cleaner than reusing the edit view.
-- FR-011: User can view a list of reports for a project, scoped within that project's detail page. Priority: must-have
-  > Socratic: Counter-argument considered — "a global cross-project reports feed might be more useful." Resolution: cross-project view is post-MVP; per-project listing is the smallest unit users actually navigate to. A global feed adds nav surface without changing the primary flow.
-- FR-012: User can edit any field on an existing report (before or after PDF generation and sending). Priority: must-have
-  > Socratic: Counter-argument considered — "post-send edits create divergence between the sent PDF and the stored data." Resolution: accepted; the sent PDF is the artifact of record, the stored data feeds the next report's context (recurring plugin list, etc.). Logged in Open Questions for future revisit.
-- FR-013: User can delete a report. Priority: must-have
-  > Socratic: Counter-argument considered — "deleting reports loses history." Resolution: audit-grade history is a multi-user post-MVP concern; for MVP, accept that anyone with the login can delete.
-- FR-014: User can fill a fixed set of report sections — month (auto from date created), WP core (version + updated yes/no), PHP (updated yes/no + from/to versions), plugins repeater (name + updated yes/no + from/to versions), themes repeater (name + updated yes/no + from/to versions), integrity checks (status passed / issues found + list of issues), fixes applied, license renewals (name + status expired/expiring + optional expiry date + notes), notes to client (free-text). Priority: must-have
-  > Socratic: Counter-argument considered — "clients vary; some want extras (uptime, SEO, backups, monitoring), some want fewer sections." Resolution: section list is locked for MVP; empty-section hiding (FR-017) handles the over-spec case; new section types are revisited only when a client actually asks. Custom freeform sections deferred to post-MVP.
-- FR-015: User can bulk-paste a WP-CLI table (plugin or theme update output) into the plugins / themes repeater. The system parses a documented expected format into individual repeater rows; on parse failure, the entire paste lands as the body of a single row so the user sees that something happened and can clean it up manually. The UI shows the expected paste format inline. Priority: must-have
-  > Socratic: Counter-argument considered — "WP-CLI output format varies by version; the parser will be fragile." Resolution: pin one documented format (the recent `wp plugin update --all` table output) and accept the fragility; the single-row fallback ensures no data is lost on failure. Multi-format auto-detection is out of scope.
-- FR-016: User can add, edit, or remove rows individually in the plugins, themes, and license-renewals repeaters. Priority: must-have
-  > Socratic: Counter-argument considered — "row-level UI is the main frontend complexity; could simplify to a single textarea per section." Resolution: row-level structure is what enables the PDF to render rows consistently and the bulk-paste parser to produce structured output. Stands.
-- FR-017: On every Save, the system synchronously generates a branded PDF of the report using the current brand settings; empty sections are hidden in the PDF (no headers, no "none" placeholders). Priority: must-have
-  > Socratic: Counter-argument considered — "PDF gen on every Save wastes work during draft authoring and slows saves." Resolution: matches the user's literal seed-note wording; simplest mental model — Save always produces a current PDF. Latency cost is real but bounded; revisited if it becomes a UX problem.
-- FR-018: User can download the generated PDF via a link visible on the report page after save. Priority: must-have
-  > Socratic: Counter-argument considered — "download link is implied by FR-017 and doesn't deserve its own FR." Resolution: the FR captures the explicit UX requirement (the link must be visible on the report page, not hidden behind a menu) — without it, users would have no in-app path to the PDF.
+## Scope of Change
 
-### Sending
-- FR-019: User can click "Send to PM" on a saved report, pick a PM from the contact list (FR-004), and the system emails that PM the branded PDF using a fixed transactional template. The system records the send (PM name + email + timestamp). If the report has already been sent to a PM, the button reads "Re-send to PM" and requires an explicit confirmation dialog before re-sending. Priority: must-have
-  > Socratic: Counter-argument considered — "double-clicks send the same PDF twice; clients have noticed." Resolution: per-send timestamp tracking + re-send confirm dialog removes the easy footgun while still allowing re-sends for typos or delivery failures.
-- FR-020: User can click "Send to client" on a saved report; the system emails the project's contact email the branded PDF using a fixed transactional template. The system records the send (recipient email + timestamp). If the report has already been sent to the client, the button reads "Re-send to client" and requires an explicit confirmation dialog. Priority: must-have
-  > Socratic: Counter-argument considered — same as FR-019. Resolution: same as FR-019.
-- FR-021: User can see the per-report send history on the report page — for each recipient (PM list entries and client contact), the most recent send timestamp is shown inline beside the relevant Send button. Priority: must-have
-  > Socratic: Counter-argument considered — "a per-report log table is overkill for MVP; could omit and let users guess." Resolution: rendering 'Sent to <addr> on <date>' beside each button is one extra line per row in the UI and is the lightest possible defense against accidental double-sends.
+Grouped by the intended slices (process decision: shape together, plan each separately).
 
-## User Stories
+### Slice A — Visual redesign + shared shell (light B2B theme)
+- [new] A shared application **header with navigation** rendered on all authenticated pages (Dashboard, Projects, project detail, report detail, all Settings pages), replacing the unused `Topbar.astro` and the per-page hand-rolled back-links/sign-out.
+- [new] A real **work dashboard** at the home route: recent projects, recent reports, quick actions (new project / new report), and links into settings. Replaces the starter `Welcome.astro` splash at `/` and the thin `/dashboard` card.
+- [modified] **Visual identity switches** from the dark `bg-cosmic` gradient theme to a **light, professional B2B aesthetic** (Linear/Stripe-style). Design tokens in `src/styles/global.css` are re-themed; `frontend-design` skill drives the direction.
+- [modified] **Wider content area** — pages move off the narrow centered `max-w-xl/2xl/3xl` cards to a wider, structured layout appropriate to each page.
+- [modified] **Nicer forms** — restyled fields, grouping, spacing, and validation presentation across project/report/settings forms.
+- [modified] The report detail page's **action buttons get tooltips**: the disabled Send-to-PM / Send-to-client states currently leak warning text inline ("No client email — add one on the project", `SendToClientButton.tsx:44`; "No PM contacts — add one in Settings", `SendToPmButton.tsx:55`). The explanation moves into a **tooltip** on the disabled button so it no longer breaks the button row.
+- [new] **Polished empty states and loading skeletons** for lists (projects, reports, contacts, catalog) instead of bare text — folded into this slice as part of "a real product," not a separate slice.
+- [modified] **Full responsive layout** — pages work across phone / tablet / desktop breakpoints. REVERSES the MVP Non-Goals "mobile applications (web-only)" partial and "mobile-responsive layout."
+- [new] **WCAG-AA accessibility pass** — focus states, semantic landmarks, ARIA where needed, color contrast meeting AA, keyboard operability of all interactive elements (including the new tooltips, dialogs, toasts). REVERSES the MVP Non-Goal "WCAG-AA accessibility commitment."
 
-### US-01: User authors and sends a maintenance report
+### Slice B — Asynchronous actions + UX feedback (depends on Slice A)
+- [modified] **Form submissions become asynchronous** — intercept submits with `fetch` instead of native POST→full-page redirect, so there is no white-flash reload. Applies to create/edit/delete on projects, reports, repeater rows, settings, and the send actions.
+- [new] **Optimistic UI** — list and repeater mutations (add/remove/edit a row, delete a project/report/contact/catalog entry) reflect immediately in the UI before the server confirms, rolling back on error. (User chose full SPA-like optimistic UI over a simpler async-submit model.)
+- [new] **Spinners / in-progress states** on every async action (the user's literal ask), with disabled controls during flight.
+- [new] **Toast notifications** for save / send / delete / error outcomes, replacing the current `?ok=`/`?error=` query-string banner pattern. Folded into this slice.
+- [modified] **Consistent confirmation dialogs** for all destructive actions (delete project / report / PM contact / catalog entry), matching the existing send re-send confirm. Folded into this slice.
+- [new] **UX recommendations** are delivered as part of this slice's plan (the user explicitly asked for UX recommendations alongside the async work).
 
-- **Given** the user is signed in with the shared credentials, brand settings are configured, the predefined plugins list and at least one PM are saved in Settings, and a project exists with a client contact email
-- **When** they create a new report on that project, fill the relevant sections (using bulk-paste from WP-CLI for plugins and themes), click Save, then click "Send to client" and "Send to PM"
-- **Then** the system generates a branded PDF on save, exposes a download link, and dispatches two emails — one to the chosen PM and one to the project's contact — each carrying the PDF as an attachment using a fixed transactional template
+### Slice C — Open PDF in the browser
+- [modified] The **Download PDF** action **opens the PDF inline in a new browser tab** instead of forcing a file download. `GET /api/reports/[id]/pdf` switches `content-disposition` from `attachment` to `inline` (or serves an inline variant); the report page link gains `target="_blank"`.
+- [preserved] An **explicit save-to-disk path remains available** (a separate Download affordance) so users who want the file still get it. The existing attachment-on-email behavior is unchanged.
 
-#### Acceptance Criteria
-- A WP-CLI plugin or theme table pasted into the bulk field is parsed into individual rows (name, current version, target version, updated yes/no). A failed parse lands the raw paste as one row so no input is lost.
-- Empty report sections (e.g., no license renewals entered) are NOT rendered in the PDF — neither as headers nor as "none" placeholders.
-- The PDF uses the configured brand logo and brand colors.
-- The recurring plugins list configured on the project pre-populates the plugins repeater when a new report is created.
-- After a successful "Send to PM" or "Send to client", the button label switches to "Re-send …" with the previous send's timestamp shown inline; re-sending requires an explicit confirmation.
-- The report remains editable after sending; sending does not lock it.
-- A failed email send surfaces an error in-app; the report and PDF are not affected and the send record is not written.
+### Slice D — Editable email configuration (separate PM + client templates)
+- [new] An **email configuration settings page** where the user edits the subject and body for outbound report emails.
+- [new] **Two independent templates** — one for "Send to PM" and one for "Send to client" — each an editable subject + body pair. REVERSES the MVP Non-Goal "Editable email body templates."
+- [new] **Placeholder interpolation** — templates support variables such as `{{project}}`, `{{month}}`, `{{agency}}` (final token set pinned in planning), substituted at send time.
+- [modified] `src/lib/email/send-report.ts` stops using its hardcoded literal subject/body and instead renders the stored template for the recipient type, interpolating placeholders. Falls back to the current hardcoded copy as a default if no template is saved.
+- [new] DB-backed storage for the two templates, following the established S-01 data-access pattern (client factory + `queries.ts` + zod `schema.ts` + form mapper + Astro `.ts` route). Single global config (single-tenant), like brand settings.
 
-## Current Workflow (today, pre-product)
+## Constraints & Compatibility
 
-1. Dev finishes maintenance round on a client site.
-2. Dev writes a loose report in Slack / Basecamp (no fixed format).
-3. PM reads the dev's notes, opens a Google Docs template, copies content over, reformats.
-4. PM exports the Google Doc as PDF.
-5. PM composes an email to the client, attaches the PDF, sends.
-6. (Sometimes) PM forwards a copy internally so the dev has a record.
+- **Stack constraints (unchanged, load-bearing — from CLAUDE.md):** deploy via `wrangler deploy` (never `pages deploy`); Supabase only over HTTP/PostgREST (never `pg` from a Worker); PDF via FormePDF on workerd (Workers Paid required); auth is peppered Web Crypto HMAC (never bcrypt in the request path). New work must not violate these.
+- **Backward compatibility:** all existing routes and the report-send flow keep working throughout. The async conversion (Slice B) must degrade gracefully — a failed `fetch` surfaces an error (toast) and must NOT leave the UI in a false-success state; for the send action specifically, the US-01 rule still holds (a failed send writes no send record).
+- **Data migration:** only Slice D adds schema — a new settings table (or row) for the two email templates. Additive, no destructive migration. Seed/migrate from a local Node process (per CLAUDE.md). No changes to existing tables.
+- **Existing integrations that must keep working:** Resend send path (Slice D changes only the body/subject source, not the dispatch mechanism or the chunked-base64 attachment); FormePDF render (Slice C changes only the response `content-disposition`, not the render); Supabase queries for all current domains.
+- **Preserved behavior (must NOT break):**
+  - The no-leak guarantee — client-facing PDF and now the **client email template** must not expose internal notes or the contact email beyond what the user types into the template/notes. The email-template feature must not become a new leak vector (e.g., a placeholder that injects internal-only fields into the client message).
+  - Empty-section hiding in the PDF.
+  - The shared-login gate on every non-login route.
+  - The send re-send confirmation + inline send-history footguns.
+  - Synchronous PDF-on-save semantics (Slice B's async work is about the request/response UX, not about making PDF generation a background job).
 
-## Access Control
+## Business Logic Changes
 
-**Single shared login for MVP.** No user accounts, no per-user identity, no roles, no invitations, no activation flow. The agency operates one credential set (login + password, plus a shared secret) that everyone on the team uses. Credentials are set via environment variables at deploy time and rotated by redeploying with new env values.
+Mostly **no domain-logic change** — Slices A, B, C are experience/presentation changes (visual design, async request handling, HTTP content-disposition). They alter how the user encounters the existing rules, not the rules themselves.
 
-There is no public sign-up. The login page accepts the env-configured credentials and nothing else; any visitor without credentials gets a generic auth failure.
+**One domain addition, in Slice D (email templating):**
 
-**PMs are NOT user accounts.** PMs appear in the MVP as a settings-maintained contact list (each entry: name + email). When the user clicks "Send to PM" on a report, they pick a PM from this list and the system emails the branded PDF to that address. PMs never log in.
-
-**Settings is global**, not per-user. Anyone with the shared login can edit brand settings (logo, brand colors), the PM contact list, and the predefined plugins list. There is no audit trail of who changed what — that's a multi-user concern and is post-MVP.
-
-**Post-MVP access-control roadmap** (captured here so it's not forgotten; NOT part of the MVP):
-
-- Per-user accounts (admin + team member roles).
-- Allowed-users list maintained by admin (email invitations).
-- Activation flow (invite email → activation page → password set).
-- Suspend / remove / role-change controls.
-- Per-project member assignment and project visibility scoping.
-- Audit trail of who created / sent each report.
-
-## Success Criteria
-
-### Primary
-- A user with the shared login can complete the full flow end-to-end in a single session: set brand once, create a project, author a report (using bulk-paste from WP-CLI for plugin and theme update tables), save, see a branded PDF generated, and send that PDF to a PM AND to the client via the in-app buttons.
-- Generating and sending a maintenance report takes at least 50% less wall-clock time than the current Slack/Basecamp → Google Docs → PDF → email pipeline.
-
-### Secondary
-- Format consistency across reports — every PDF for every project comes out structurally identical, with only content differing. (Today, format drifts between PMs.)
-- After the first report on a project, subsequent reports start with the recurring plugin list pre-populated so the dev doesn't re-enter the same plugin rows every cycle.
-
-### Guardrails
-- The MVP ships in ≤ 3 weeks of after-hours work. Anything that would push past three weeks is cut, not absorbed.
-- The shared login is not bypassable from any route — every page except `/login` requires an authenticated session.
-- Empty report sections are HIDDEN in the generated PDF, never rendered as empty stubs. ("Plugins: none" looks worse than no Plugins section at all.)
-- Client contact emails and internal notes never appear in the client-facing PDF unless the user explicitly puts them in the "notes to client" field.
-
-## Business Logic
-
-**Each new maintenance report is seeded from its project's recurring plugin list and rendered through a single agency-branded PDF template that hides any section the user did not fill — so format consistency and reduced re-entry follow from the system's structure, not from reviewer discipline.**
-
-What the rule consumes (as user-facing inputs):
-
-- The project's **recurring plugin list** — composed once per project by picking from the agency-wide plugin catalog (FR-003) and optionally adding free-text entries (FR-009). This is the per-cycle context that should not be re-typed.
-- The **current cycle's delta** — the dev's authoring of this report's specific values: WP core / PHP / per-plugin version-from/to / themes / integrity checks / fixes / licenses / notes to client.
-- The agency's **brand settings** — logo and brand colors (FR-002), consumed at PDF render time.
-
-What the rule produces:
-
-- A **report record** that combines the seeded recurring rows with the cycle delta. Editable at any time before or after rendering.
-- A **branded PDF artifact** rendered through one fixed template. Sections appear in the PDF only when the user has filled their underlying fields; empty sections do not render as headers or "none" placeholders.
-- Two **transactional emails** (PM, client) when the user explicitly triggers them, each carrying the rendered PDF as an attachment.
-
-Where the user encounters the rule:
-
-- On creating a new report, the plugins repeater is pre-populated by the project's recurring list — the user sees existing rows on the empty form and edits or extends them, rather than starting from a blank slate.
-- On every Save, a fresh PDF is generated using the current brand settings. The user sees a download link with the latest rendered artifact.
-- When clicking Send, the user does not pick a layout, colors, or a template — the artifact is deterministic from the input and the agency brand.
-
-The rule is not a recommendation or a scoring engine — the app does not infer urgency, suggest update orders, or prioritize plugins. The decisions the app makes are: *which rows to seed*, *which sections to render*, and *which brand to apply*.
+- **Current rule:** outbound report emails use a single fixed transactional subject + body for both recipients.
+- **Change:** the outbound email's subject and body are now drawn from a per-recipient-type (PM vs client) editable template, with placeholder tokens (`{{project}}`, `{{month}}`, `{{agency}}`, …) resolved from the report/project/brand at send time. The rule the app applies: *select the template for the recipient type, interpolate the known tokens, and send that as the message body* — falling back to the built-in default copy when no template has been saved. The deterministic PDF artifact and the dispatch mechanism are unchanged; only the human-readable message text becomes data-driven instead of code-frozen.
 
 ## Non-Functional Requirements
 
-- Saving a report and receiving its generated PDF download link completes in under 5 seconds at the 95th percentile for reports containing up to 30 plugin and 5 theme rows.
-- The login flow does not lock out a legitimate user who mistypes the shared password three times in a row, but resists credential-stuffing at scale (automated attempts are rejected before reaching the credential check).
-- The client-facing PDF contains no project internal notes and no project contact email unless the user has explicitly transcribed them into the "notes to client" free-text field — those fields are agency-internal and must not leak into the artifact sent to clients.
-- From the moment the user clicks "Send to PM" or "Send to client", the email leaves the system within 3 seconds at the 95th percentile. (The user sees acknowledgement that the send started immediately; delivery to the recipient's inbox is bounded by external mail infrastructure and not part of this commitment.)
-- The product is usable on the latest two major versions of the four mainstream desktop browsers (Chrome, Firefox, Safari, Edge). Mobile and accessibility (WCAG-AA) commitments are explicitly out of MVP scope — see Non-Goals.
+- **Accessibility:** the application meets **WCAG 2.1 AA** for the primary flows — perceivable contrast (≥ 4.5:1 normal text), full keyboard operability of every interactive control (including tooltips, dialogs, toasts), visible focus indicators, and correct semantic structure / landmarks. (Reverses the MVP a11y non-goal.)
+- **Responsiveness:** the application is usable and laid out correctly across mobile (≥ 360px), tablet, and desktop widths, in addition to the latest two major versions of the four mainstream desktop browsers. (Reverses the MVP responsive non-goal.)
+- **Async feedback:** any user action acknowledges within ~200 ms (immediate spinner / optimistic reflection) and shows continuous visible progress for anything taking longer than ~1–2 s; no action produces a full-page white-flash reload.
+- **No false success:** an action's success state is shown only after the server confirms (optimistic UI rolls back and surfaces an error on failure); for report sends, a failure writes no send record (preserved US-01 acceptance criterion).
+- **No new leak surface:** the client email template cannot emit project internal notes or the internal contact email except where the user explicitly authored such text; placeholder tokens are restricted to non-leaky fields.
+- **PDF responsiveness (preserved):** save → PDF availability stays under the existing 5 s p95 budget for ≤30 plugin / 5 theme rows; inline-open does not regress it.
 
 ## Non-Goals
 
-Functional scope avoids (capabilities the MVP will not build):
-
-- **User accounts and roles** — single shared login only; admin / team-member distinction is post-MVP. *Rationale: cuts ~1 week of auth + invitation + activation work; aligns with the 3-week budget.*
-- **Invitations / allowed-users list / activation flow** — no email-invite-then-set-password onboarding. *Rationale: implies user accounts.*
-- **Per-user identity / audit trail** — the system does not record who created or sent a given record. *Rationale: implies user accounts.*
-- **Multi-tenancy** — the system is built for one agency; other agencies cannot run their own branded instance from the same deployment. *Rationale: explicit single-tenant lock; preserves data-model simplicity. Multi-tenant is a v2 path with non-trivial migration cost (logged as Open Question).*
-- **Per-project / per-client brand override** — every PDF carries the single agency brand. *Rationale: one logo + one color palette for MVP; per-project brand is post-MVP per FR-002 Socratic.*
-- **Custom freeform report sections** — the report's section list is fixed (FR-014). *Rationale: clients may want extras, but adding section-type management blows the budget; empty-section hiding handles the over-spec case.*
-- **PDF Preview** — no in-app preview of the PDF before save. *Rationale: explicit per seed notes; users download to view.*
-- **Editable email body templates** — both Send buttons use a fixed transactional template. *Rationale: explicit per seed notes; template management is post-MVP.*
-- **Inbound email / reply tracking** — the system does not parse client replies or attach them to reports as comments. *Rationale: clarification of seed-notes "Email integration" post-MVP item.*
-- **Schedules / notifications / reminders per project** — no scheduled "report due" emails or in-app reminders. *Rationale: explicit per seed notes.*
-- **Annual summary PDF report** — no aggregate yearly report rendered from a project's report history. *Rationale: explicit per seed notes.*
-- **Soft delete / archive** — project deletion is hard delete only. *Rationale: explicit per seed notes; soft delete is post-MVP.*
-- **Client portal** — clients receive the PDF by email; they never log in to view their own reports. *Rationale: explicit lock to prevent scope drift toward a client-facing surface.*
-- **WP-CLI / WP REST API auto-pull integration** — the system does not connect to client WordPress sites; the dev pastes update data manually. *Rationale: explicit lock; auto-detection is post-MVP and overlaps with the value of existing tools (ManageWP, MainWP).*
-- **AI-assisted notes / report drafting** — no LLM summarization of fixes, integrity checks, or notes-to-client. *Rationale: explicit lock; the dev writes; no AI add-on in MVP.*
-- **Cross-project reports feed** — reports are listed per-project only (FR-011). *Rationale: cross-project view is post-MVP per FR-011 Socratic.*
+Functional scope avoids (this round will NOT):
+- **Per-user accounts / roles / audit trail** — still single shared login. *Rationale: out of scope for a UX + small-features pass; remains the big post-MVP item.*
+- **Multi-tenancy / per-project brand override** — single agency brand, single tenant, unchanged. *Rationale: untouched by this round.*
+- **Rich email body editor (WYSIWYG / HTML design)** — the editable email templates are subject + body text with simple `{{placeholder}}` tokens, not a drag-and-drop or HTML-styling editor. *Rationale: keeps Slice D small; full template design is post-this-round.*
+- **Arbitrary / user-defined placeholder tokens** — only a fixed, vetted token set (e.g. `{{project}}`, `{{month}}`, `{{agency}}`) is supported, specifically so the client template can't be pointed at internal-only fields. *Rationale: no-leak guardrail.*
+- **PDF preview before save / in-app PDF editor** — Slice C only opens the *already-rendered* PDF inline; it does not add a pre-save preview or editing. *Rationale: preview-before-save remains an explicit MVP-era lock.*
+- **Making PDF generation or email sending a background/queued job** — async here means request/response UX (fetch + spinners + optimistic UI), not moving work off the request path. *Rationale: synchronous PDF-on-save was proven fine (p95 ~197 ms); no queue needed.*
+- **New report sections / cross-project feeds / scheduling / annual summaries / client portal / WP auto-pull / AI drafting** — all remain post-MVP, untouched by this round. *Rationale: unchanged scope locks from the MVP.*
 
 Non-functional scope avoids:
+- **Offline-first / PWA / installable app** — responsive web only; no service-worker offline mode. *Rationale: not requested; out of scope.*
+- **Localization / i18n of the UI** — English UI only, as today. *Rationale: not requested.*
+- **AAA accessibility** — the commitment is WCAG **AA**, not AAA. *Rationale: AA is the professional bar; AAA is disproportionate.*
 
-- **WCAG-AA accessibility commitment** — the MVP commits only to keyboard-navigable primary forms; full WCAG-AA conformance is out of scope. *Rationale: full a11y audit + remediation does not fit the 3-week budget.*
-- **Mobile applications** — web-only for MVP. *Rationale: explicit per seed notes.*
-- **Mobile-responsive layout** — the read-only report view is not committed to working on phones. *Rationale: explicitly declined in NFR group 2; web desktop only.*
+## Forward: technical-roadmap
 
-## Open Questions
+Informational hand-off for `/10x-plan` per slice (NOT part of the PRD schema):
+- **Slice ordering / dependencies:** A (shell + theme) is the prerequisite for B (async/optimistic UI builds on the redesigned components). C (inline PDF) and D (email config) are independent of A/B and of each other — they can be planned and shipped in any order. Suggested plan order: A → B, with C and D slotted whenever convenient (C is tiny).
+- **Slice A is the big one** — it touches `Layout.astro`, every page under `src/pages/`, `global.css` tokens, and most components; `/10x-plan` may legitimately split it (e.g. shell+nav+dashboard vs. theme+forms vs. responsive+a11y). Use the `frontend-design` skill for the visual direction before planning the build.
+- **Reusable primitives to introduce in A and reuse in B:** a shared header/nav, a Tooltip, a Dialog/confirm, a Toast system, empty-state and skeleton components — so B's async/confirm/toast work composes with A's components instead of duplicating them.
+- **Slice D data-access** follows the S-01 pattern (see the supabase-data-access memory): `src/lib/email-templates/{queries,schema,form}.ts` + an Astro `.ts` settings route + a settings page, mirroring brand-settings. `send-report.ts` consumes the stored template with a hardcoded-copy fallback.
+- **Each slice gets its own `context/changes/<id>/` folder** (`change.md` via `/10x-new`, then `plan.md` via `/10x-plan`), consistent with the shipped slice format. Do not write to `context/archive/`.
 
-1. **Shared-credentials inherent leak risk.** The MVP uses a single login/password set via env vars for the entire agency (FR-001). When staff change, or a screenshot is shared, the credential set is effectively public. Accepted as a time-bounded trade for MVP; mitigation is env-var rotation on staff changes / quarterly. Resolved when: per-user accounts ship post-MVP. Owner: user.
-2. **Editing reports after sending creates divergence between the sent PDF and the stored data** (FR-012). The sent PDF is the artifact of record, but the stored data (used as the seed for future reports' recurring plugins, etc.) can drift from it. Accepted for MVP; revisit when: a real client dispute makes the divergence painful, or when audit history ships with multi-user. Owner: user.
-3. **Multi-tenant data model decision** (deferred from `## Forward: tech-stack`). The MVP is single-tenant; no `agency_id` columns. If/when multi-tenancy ships post-MVP, deciding whether to retrofit row-level tenancy onto existing tables vs. a clean rewrite is a non-trivial call. Owner: user; resolution deferred until multi-tenancy is actually planned.
+## Quality cross-check
 
-## Forward: tech-stack
+All required brownfield elements present:
+- **Access Control:** present — "No access control changes — current model preserved."
+- **Business Logic:** present — domain delta is the email-template interpolation rule (Slice D); A/B/C are explicitly presentation-only.
+- **Project artifacts:** present — this `shape-notes.md` with a valid brownfield checkpoint.
+- **Timeline-cost ack:** present — `delivery_weeks: 2`, ≤ 3; within the after-hours budget, no acknowledgment block needed.
+- **Non-Goals:** present — functional + non-functional avoids, including the placeholder-token leak guard.
+- **Preserved behavior:** present — `## Constraints & Compatibility` explicitly names the no-leak guarantee, empty-section hiding, the auth gate, send footguns, and synchronous PDF-on-save as must-not-break.
 
-The user named these preferences in their seed idea-notes. They are NOT bound by the PRD — they will be picked up by `10x-tech-stack-selector` after `/10x-prd` runs.
-
-- Next.js (frontend framework)
-- Supabase (backend / database / auth)
-- Tailwind CSS (styling)
-- Email service: Resend or similar (transactional email for "send to PM" / "send to client")
-
-Tenancy preference: single-tenant single-user MVP (one shared credential set). Multi-user roles and multi-tenancy are explicitly post-MVP — do not pre-build columns or table structures for them. Add them when they're actually being implemented.
+No gaps. `quality_check_status: accepted`.
