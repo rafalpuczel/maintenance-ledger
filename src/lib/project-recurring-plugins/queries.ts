@@ -31,7 +31,10 @@ export class AlreadyOnListError extends Error {
 // so we read plugin[0] defensively even though the FK is to-one.
 interface JoinedRow {
   id: string;
-  plugin: { id: string; name: string; notes: string | null } | { id: string; name: string; notes: string | null }[] | null;
+  plugin:
+    | { id: string; name: string; notes: string | null }
+    | { id: string; name: string; notes: string | null }[]
+    | null;
 }
 
 function flatten(row: JoinedRow): RecurringPlugin | null {
@@ -55,7 +58,9 @@ export async function listRecurringPlugins(client: Client, projectId: string): P
 }
 
 export async function addRecurringPluginById(client: Client, projectId: string, pluginId: string): Promise<void> {
-  const { error } = await client.from("project_recurring_plugins").insert({ project_id: projectId, plugin_id: pluginId });
+  const { error } = await client
+    .from("project_recurring_plugins")
+    .insert({ project_id: projectId, plugin_id: pluginId });
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
       throw new AlreadyOnListError();
