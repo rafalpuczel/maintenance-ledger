@@ -39,7 +39,7 @@ Maintenance reports for client WordPress retainers are produced today through a 
 | S-06  | report-authoring           | author a report's fixed sections (CRUD + row repeaters, recurring-seeded) | F-01, S-01, S-03, S-05 | FR-010, FR-011, FR-012, FR-013, FR-014, FR-016, US-01 | done     |
 | S-07  | wp-cli-bulk-paste          | bulk-paste a WP-CLI table into the plugins/themes repeaters     | S-06                   | FR-015, US-01                                  | done     |
 | S-08  | branded-pdf-on-save        | get a branded PDF on every save + a visible download link       | S-06, F-02, S-02       | FR-017, FR-018, US-01                          | done     |
-| S-09  | report-email-send          | send the branded PDF to the PM and the client (north star)      | S-08, S-04             | FR-019, FR-020, FR-021, US-01                  | proposed |
+| S-09  | report-email-send          | send the branded PDF to the PM and the client (north star)      | S-08, S-04             | FR-019, FR-020, FR-021, US-01                  | done     |
 
 ## Streams
 
@@ -199,7 +199,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** Resend (or Postmark) account + verified sending domain + `RESEND_API_KEY` secret — `deploy-plan.md` marks this Outstanding/deferred; email cannot be sent until it is provisioned (see Open Roadmap Question 4).
 - **Unknowns:** Final email provider pick — Resend vs. Postmark? Owner: user. Block: no — either satisfies the FR; the deploy plan leans Resend.
 - **Risk:** The capstone that lights up the north star. The footgun guards (re-send confirmation, inline send history) are the point of FR-019–021. NFR: the email must leave the system within 3 s p95. A failed send must surface in-app and must NOT write a send record (US-01 acceptance criterion). Email deliverability beyond dispatch is explicitly out of the commitment.
-- **Status:** proposed
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -258,3 +258,4 @@ Lifted from PRD `## Non-Goals` — explicitly out of MVP scope (post-MVP unless 
 - **S-06: user can author a report's fixed sections (CRUD + row repeaters, recurring-seeded)** — Archived 2026-05-30 → `context/archive/2026-05-30-report-authoring/`. Lesson: vitest has no `@/` alias — import a `src/lib/<domain>/` module's siblings relatively; `supabase gen types` pollutes the output file with CLI banners (sanitize, verify with `astro check`).
 - **S-07: user can bulk-paste a WP-CLI table into the plugins/themes repeaters (single-row fallback on parse failure)** — Archived 2026-05-30 → `context/archive/2026-05-30-wp-cli-bulk-paste/`. Lesson: —.
 - **S-08: user gets a branded PDF on every save (real brand, empty sections hidden) + a visible download link** — Archived 2026-05-30 → `context/archive/2026-05-30-branded-pdf-on-save/`. Lesson: —.
+- **S-09: user can send the branded PDF to the PM and the client (re-send guard + inline send history) — the north star, verified in prod** — Archived 2026-05-30 → `context/archive/2026-05-30-report-email-send/`. Lesson: Resend attachments take chunked standard-base64 (not base64url) of the PDF `Uint8Array` on workerd; record the send only after a confirmed dispatch (US-01: a failed send writes no record).
