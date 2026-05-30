@@ -305,9 +305,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [x] 2.1 Build passes: `npm run build`
-- [x] 2.2 Lint passes (exit code 0): `npm run lint`
-- [x] 2.3 Tests pass: `npm test`
+- [x] 2.1 Build passes: `npm run build` — 5f3b8e1
+- [x] 2.2 Lint passes (exit code 0): `npm run lint` — 5f3b8e1
+- [x] 2.3 Tests pass: `npm test` — 5f3b8e1
 
 #### Manual
 
@@ -317,9 +317,9 @@ Single additive migration; no data backfill (no existing recurring data). `on de
 
 #### Automated
 
-- [x] 3.1 Build passes: `npm run build`
-- [x] 3.2 Lint passes (exit code 0): `npm run lint`
-- [x] 3.3 Tests pass: `npm test`
+- [x] 3.1 Build passes: `npm run build` — 5f3b8e1
+- [x] 3.2 Lint passes (exit code 0): `npm run lint` — 5f3b8e1
+- [x] 3.3 Tests pass: `npm test` — 5f3b8e1
 
 #### Manual
 
