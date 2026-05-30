@@ -381,10 +381,10 @@ Forward-only migration; no existing report data to migrate (greenfield table). L
 
 #### Automated
 
-- [x] 1.1 Migration file exists and follows naming/DDL conventions
-- [x] 1.2 Migration applies cleanly against local Supabase (`npx supabase db reset --local`)
-- [x] 1.3 Types regenerate and include the reports table (`npm run db:types`)
-- [x] 1.4 Type checking passes (`npx astro check`)
+- [x] 1.1 Migration file exists and follows naming/DDL conventions — 92370a1
+- [x] 1.2 Migration applies cleanly against local Supabase (`npx supabase db reset --local`) — 92370a1
+- [x] 1.3 Types regenerate and include the reports table (`npm run db:types`) — 92370a1
+- [x] 1.4 Type checking passes (`npx astro check`) — 92370a1
 
 #### Manual
 
@@ -394,9 +394,9 @@ Forward-only migration; no existing report data to migrate (greenfield table). L
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`npx astro check`)
-- [ ] 2.2 Linting passes by exit code (`npm run lint`)
-- [ ] 2.3 Build passes (`npm run build`)
+- [x] 2.1 Type checking passes (`npx astro check`)
+- [x] 2.2 Linting passes by exit code (`npm run lint`)
+- [x] 2.3 Build passes (`npm run build`)
 
 ### Phase 3: API routes
 
