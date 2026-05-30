@@ -267,10 +267,10 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Automated
 
-- [x] 1.1 Migration applies locally: `npx supabase migration up --local`
-- [x] 1.2 Types regenerate clean and typecheck: `npx astro check` (exit 0)
-- [x] 1.3 Linting passes: `npm run lint` (exit 0)
-- [x] 1.4 `summarize` unit tests pass: `npm test`
+- [x] 1.1 Migration applies locally: `npx supabase migration up --local` — 7919081
+- [x] 1.2 Types regenerate clean and typecheck: `npx astro check` (exit 0) — 7919081
+- [x] 1.3 Linting passes: `npm run lint` (exit 0) — 7919081
+- [x] 1.4 `summarize` unit tests pass: `npm test` — 7919081
 
 #### Manual
 
@@ -280,9 +280,9 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Automated
 
-- [x] 2.1 Typecheck passes: `npx astro check` (exit 0)
-- [x] 2.2 Linting passes: `npm run lint` (exit 0)
-- [x] 2.3 Build passes: `npm run build` (exit 0)
+- [x] 2.1 Typecheck passes: `npx astro check` (exit 0) — 7919081
+- [x] 2.2 Linting passes: `npm run lint` (exit 0) — 7919081
+- [x] 2.3 Build passes: `npm run build` (exit 0) — 7919081
 
 #### Manual
 
@@ -295,9 +295,9 @@ One additive migration (`report_sends`); no changes to existing tables, so no da
 
 #### Automated
 
-- [x] 3.1 Typecheck passes: `npx astro check` (exit 0)
-- [x] 3.2 Linting passes: `npm run lint` (exit 0)
-- [x] 3.3 Build passes: `npm run build` (exit 0)
+- [x] 3.1 Typecheck passes: `npx astro check` (exit 0) — 7919081
+- [x] 3.2 Linting passes: `npm run lint` (exit 0) — 7919081
+- [x] 3.3 Build passes: `npm run build` (exit 0) — 7919081
 
 #### Manual
 
