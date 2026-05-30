@@ -5,7 +5,7 @@ import { z } from "zod";
 // the catalog, then links). Two tiny schemas instead of one object — the route
 // branches on which field the form carried.
 
-export const pluginIdSchema = z.string().uuid("Pick a plugin from the list");
+export const pluginIdSchema = z.uuid("Pick a plugin from the list");
 
 // Same "required, trimmed" rule the catalog uses for its name, so a free-text
 // add and a catalog entry validate identically.
