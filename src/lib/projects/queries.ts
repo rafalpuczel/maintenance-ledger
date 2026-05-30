@@ -33,6 +33,16 @@ export async function getProjectBySlug(client: Client, slug: string): Promise<Pr
   return data;
 }
 
+// Lookup by id. Used by the PDF route to resolve a report's project slug for the
+// download filename; the route reads only `.slug` from the result.
+export async function getProjectById(client: Client, id: string): Promise<Project | null> {
+  const { data, error } = await client.from("projects").select("*").eq("id", id).maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+}
+
 export async function createProject(client: Client, input: ProjectInput): Promise<Project> {
   const { data, error } = await client.from("projects").insert(input).select("*").single();
   if (error) {

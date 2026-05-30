@@ -298,16 +298,16 @@ None — no schema change, no migration, no persisted PDF state. Pure code addit
 
 #### Automated
 
-- [x] 2.1 Section-visibility + brand-default unit tests pass: `npm test`
-- [x] 2.2 Type checking passes: `npx astro check`
-- [x] 2.3 Build succeeds (template + font bundled): `npm run build`
-- [x] 2.4 Lint passes: `npm run lint`
+- [x] 2.1 Section-visibility + brand-default unit tests pass: `npm test` — 52b2eac
+- [x] 2.2 Type checking passes: `npx astro check` — 52b2eac
+- [x] 2.3 Build succeeds (template + font bundled): `npm run build` — 52b2eac
+- [x] 2.4 Lint passes: `npm run lint` — 52b2eac
 
 #### Manual
 
-- [x] 2.5 Branded full-section PDF renders (logo header, footer page numbers, paginated tables, custom font)
-- [x] 2.6 Empty section is omitted (no header, no "none" placeholder)
-- [x] 2.7 No internal notes / contact-email-shaped string appears anywhere in the PDF
+- [x] 2.5 Branded full-section PDF renders (logo header, footer page numbers, paginated tables, custom font) — 52b2eac
+- [x] 2.6 Empty section is omitted (no header, no "none" placeholder) — 52b2eac
+- [x] 2.7 No internal notes / contact-email-shaped string appears anywhere in the PDF — 52b2eac
 
 ### Phase 3: PDF Route + Download Link + Validate-on-Save
 
