@@ -1,0 +1,62 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import DeleteReportButton from "@/components/reports/DeleteReportButton";
+import { createSupabaseClient } from "@/lib/supabase";
+import { getProjectBySlug } from "@/lib/projects/queries";
+import { listCatalog } from "@/lib/plugins-catalog/queries";
+import { getReport } from "@/lib/reports/queries";
+
+const slug = Astro.params.slug ?? "";
+const id = Astro.params.id ?? "";
+const client = createSupabaseClient();
+
+const [project, report, catalog] = await Promise.all([
+  getProjectBySlug(client, slug),
+  getReport(client, id),
+  listCatalog(client),
+]);
+
+if (!project) {
+  return Astro.redirect("/projects?error=Project%20not%20found");
+}
+if (!report) {
+  return Astro.redirect(`/projects/${slug}?error=Report%20not%20found`);
+}
+
+const error = Astro.url.searchParams.get("error");
+const ok = Astro.url.searchParams.get("ok");
+const okMessage = ok === "created" ? "Report created." : ok === "saved" ? "Changes saved." : null;
+
+// Catalog names feed the plugin-row datalist combobox in the form (Phase 5).
+const catalogNames = catalog.map((c) => c.name);
+---
+
+<Layout title={`${project.name} — ${report.month}`}>
+  <div class="bg-cosmic min-h-screen p-6 text-white">
+    <div class="mx-auto max-w-2xl">
+      <div class="mb-6 flex items-center justify-between">
+        <a href={`/projects/${project.slug}`} class="text-sm text-blue-100/60 underline-offset-4 hover:underline">
+          ← {project.name}
+        </a>
+        <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
+      </div>
+
+      {
+        okMessage && (
+          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
+            {okMessage}
+          </p>
+        )
+      }
+
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Report — {report.month}</h1>
+        <p class="text-sm text-blue-100/60">{project.name}</p>
+      </div>
+
+      <div data-report-form-slot data-catalog={JSON.stringify(catalogNames)} data-error={error ?? ""}>
+        <!-- ReportForm island mounts here in Phase 5 -->
+      </div>
+    </div>
+  </div>
+</Layout>

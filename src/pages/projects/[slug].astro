@@ -7,6 +7,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
 import { listRecurringPlugins } from "@/lib/project-recurring-plugins/queries";
+import { listReportsByProject } from "@/lib/reports/queries";
 
 const slug = Astro.params.slug ?? "";
 const client = createSupabaseClient();
@@ -16,7 +17,11 @@ if (!project) {
   return Astro.redirect("/projects?error=Project%20not%20found");
 }
 
-const [recurring, catalog] = await Promise.all([listRecurringPlugins(client, project.id), listCatalog(client)]);
+const [recurring, catalog, reports] = await Promise.all([
+  listRecurringPlugins(client, project.id),
+  listCatalog(client),
+  listReportsByProject(client, project.id),
+]);
 
 const error = Astro.url.searchParams.get("error");
 const ok = Astro.url.searchParams.get("ok");
@@ -29,7 +34,9 @@ const okMessage =
         ? "Plugin added to the recurring list."
         : ok === "plugin-removed"
           ? "Plugin removed from the recurring list."
-          : null;
+          : ok === "report-deleted"
+            ? "Report deleted."
+            : null;
 ---
 
 <Layout title={project.name}>
@@ -81,6 +88,47 @@ const okMessage =
           serverError={error}
           client:load
         />
+      </section>
+
+      <section class="mt-8">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Reports</h2>
+            <p class="text-sm text-blue-100/60">Maintenance reports for this project, newest first.</p>
+          </div>
+          <form method="POST" action="/api/reports">
+            <input type="hidden" name="project_id" value={project.id} />
+            <input type="hidden" name="slug" value={project.slug} />
+            <button
+              type="submit"
+              class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500"
+            >
+              + New report
+            </button>
+          </form>
+        </div>
+
+        {
+          reports.length === 0 ? (
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
+              <p>No reports yet. Create the first one.</p>
+            </div>
+          ) : (
+            <ul class="space-y-2">
+              {reports.map((report) => (
+                <li>
+                  <a
+                    href={`/projects/${project.slug}/reports/${report.id}`}
+                    class="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:bg-white/10"
+                  >
+                    <span class="font-medium">{report.month}</span>
+                    <span class="text-sm text-blue-100/50">{new Date(report.created_at).toLocaleDateString()}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
       </section>
     </div>
   </div>
