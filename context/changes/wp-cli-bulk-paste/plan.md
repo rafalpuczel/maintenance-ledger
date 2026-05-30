@@ -228,24 +228,24 @@ None. No schema, data, or stored-shape changes — parsed rows use the exact exi
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro check`
-- [x] 1.2 Linting passes by exit code: `npm run lint`
-- [x] 1.3 Parser unit tests pass: `npm test`
+- [x] 1.1 Type checking passes: `npx astro check` — 51efb73
+- [x] 1.2 Linting passes by exit code: `npm run lint` — 51efb73
+- [x] 1.3 Parser unit tests pass: `npm test` — 51efb73
 
 ### Phase 2: Bulk-paste UI in RowsRepeater
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro check`
-- [ ] 2.2 Linting passes by exit code: `npm run lint`
-- [ ] 2.3 Existing tests still pass: `npm test`
-- [ ] 2.4 Production build succeeds: `npm run build`
+- [x] 2.1 Type checking passes: `npx astro check`
+- [x] 2.2 Linting passes by exit code: `npm run lint`
+- [x] 2.3 Existing tests still pass: `npm test`
+- [x] 2.4 Production build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.5 Plugins and Themes sections each show a "Paste from WP-CLI" toggle → textarea + hint + "Parse & add rows" button
-- [ ] 2.6 Pasting a real results table produces correct rows (versions + Updated/Error→checkbox); textarea clears
-- [ ] 2.7 Pasting non-table text produces a single row with the raw paste (nothing lost)
-- [ ] 2.8 Pasting into a recurring-seeded repeater merges by name (case-insensitive), no duplicates; non-matching rows append
-- [ ] 2.9 Empty paste + click is a no-op (no junk row)
-- [ ] 2.10 Themes block behaves identically; catalog datalist and existing row controls still work
+- [x] 2.5 Plugins and Themes sections each show a "Paste from WP-CLI" toggle → textarea + hint + "Parse & add rows" button
+- [x] 2.6 Pasting a real results table produces correct rows (versions + Updated/Error→checkbox); textarea clears
+- [x] 2.7 Pasting non-table text produces a single row with the raw paste (nothing lost)
+- [x] 2.8 Pasting into a recurring-seeded repeater merges by name (case-insensitive), no duplicates; non-matching rows append
+- [x] 2.9 Empty paste + click is a no-op (no junk row)
+- [x] 2.10 Themes block behaves identically; catalog datalist and existing row controls still work

@@ -1,7 +1,9 @@
-import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight, Clipboard, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PluginRow, ThemeRow } from "@/lib/reports/schema";
 import { pluginFieldName, themeFieldName } from "@/lib/reports/form";
+import { mergeRowsByName, parseWpCliTable } from "@/lib/wp-cli-paste/parser";
 
 // Plugin and theme rows share the same shape and UI; `kind` picks the field-name
 // helper (so FormData names match what the parser expects) and whether a catalog
@@ -27,6 +29,10 @@ function emptyRow(): VersionRow {
 export default function RowsRepeater({ kind, rows, onChange, catalogNames }: Props) {
   const fieldName = kind === "plugins" ? pluginFieldName : themeFieldName;
   const namePlaceholder = kind === "plugins" ? "Akismet Anti-Spam" : "Twenty Twenty-Four";
+  const command = kind === "plugins" ? "wp plugin update --all" : "wp theme update --all";
+
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
 
   function patch(i: number, change: Partial<VersionRow>) {
     onChange(rows.map((row, idx) => (idx === i ? { ...row, ...change } : row)));
@@ -40,6 +46,14 @@ export default function RowsRepeater({ kind, rows, onChange, catalogNames }: Pro
     onChange(rows.filter((_, idx) => idx !== i));
   }
 
+  function parseAndAdd() {
+    // Append-merge by name: pasted versions fill recurring-seeded rows instead
+    // of duplicating them. An empty paste yields [] and is a no-op.
+    const parsed = parseWpCliTable(pasteText);
+    if (parsed.length > 0) onChange(mergeRowsByName(rows, parsed));
+    setPasteText("");
+  }
+
   return (
     <div className="space-y-3">
       {kind === "plugins" && catalogNames && catalogNames.length > 0 && (
@@ -49,6 +63,46 @@ export default function RowsRepeater({ kind, rows, onChange, catalogNames }: Pro
           ))}
         </datalist>
       )}
+
+      <div className="rounded-lg border border-white/10 bg-white/5">
+        <button
+          type="button"
+          onClick={() => {
+            setPasteOpen((o) => !o);
+          }}
+          className="flex w-full items-center gap-2 px-3 py-2 text-sm text-blue-100/80 hover:text-white"
+        >
+          {pasteOpen ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          <Clipboard className="size-4" />
+          Paste from WP-CLI
+        </button>
+        {pasteOpen && (
+          <div className="space-y-2 border-t border-white/10 p-3">
+            <p className="text-xs text-blue-100/50">
+              Paste the <code className="text-blue-100/80">{command}</code> results table — columns: name, old_version,
+              new_version, status. Unrecognized text lands as a single row.
+            </p>
+            <textarea
+              value={pasteText}
+              onChange={(e) => {
+                setPasteText(e.target.value);
+              }}
+              placeholder={`+------+-------------+-------------+---------+\n| name | old_version | new_version | status  |\n...`}
+              rows={6}
+              className={`${inputClass} w-full font-mono text-xs`}
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={parseAndAdd}
+              className="border border-white/20 bg-white/10 hover:bg-white/20"
+            >
+              <Plus className="size-4" />
+              Parse &amp; add rows
+            </Button>
+          </div>
+        )}
+      </div>
 
       {rows.length === 0 ? (
         <p className="text-sm text-blue-100/40">No rows yet.</p>
