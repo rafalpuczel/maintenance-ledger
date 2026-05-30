@@ -23,6 +23,7 @@ export default defineConfig({
       SHARED_PASSWORD_PEPPER: envField.string({ context: "server", access: "secret" }),
       SESSION_HMAC_KEY: envField.string({ context: "server", access: "secret" }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      REPORT_FROM_EMAIL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 });

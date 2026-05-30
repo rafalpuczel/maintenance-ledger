@@ -168,6 +168,48 @@ export type Database = {
         }
         Relationships: []
       }
+      report_sends: {
+        Row: {
+          id: string
+          pm_contact_id: string | null
+          recipient_email: string
+          recipient_type: string
+          report_id: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          pm_contact_id?: string | null
+          recipient_email: string
+          recipient_type: string
+          report_id: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          pm_contact_id?: string | null
+          recipient_email?: string
+          recipient_type?: string
+          report_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_sends_pm_contact_id_fkey"
+            columns: ["pm_contact_id"]
+            isOneToOne: false
+            referencedRelation: "pm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_sends_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -374,3 +416,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

@@ -48,6 +48,7 @@ What's currently live on Cloudflare and how it got there. The implementation pla
 | `SHARED_PASSWORD_PEPPER` | ✅ Set | Set 2026-05-29. base64, 32 random bytes. Mints the hash above. |
 | `SESSION_HMAC_KEY` | ✅ Set | 32 random bytes base64 |
 | `RESEND_API_KEY` | ⬜ Deferred | Marked `optional: true` in `astro.config.mjs` env schema; required before FR-019/020 are wired |
+| `REPORT_FROM_EMAIL` | ⬜ Deferred | `optional: true`; report-email from-address. Falls back to `onboarding@resend.dev` (dev/smoke). Prod: verified-domain sender (S-09). |
 
 `wrangler secret list` is the source of truth for what's in the Workers Secrets Store.
 
@@ -76,7 +77,7 @@ What's currently live on Cloudflare and how it got there. The implementation pla
 
 ## Outstanding (post-deploy follow-ups)
 
-- **Prereq C — Resend**: account signup + verified domain + API key, then `wrangler secret put RESEND_API_KEY`. Required before FR-019/020 are built.
+- **Prereq C — Resend**: account signup + verified domain + API key, then `wrangler secret put RESEND_API_KEY`. Also `wrangler secret put REPORT_FROM_EMAIL` set to a verified-domain sender (e.g. `reports@<agency-domain>`); the code falls back to Resend's shared `onboarding@resend.dev` when unset, which works for dev/smoke but lands in spam for real client sends. Required before FR-019/020 are built.
 - **R8 hardening**: gate preview URLs with Cloudflare Access before any real client data lands.
 - **Rollback drill**: not yet exercised. Run `wrangler rollback` once as a dry run so the first real incident isn't the first time you've used it.
 - **FR-001 implementation**: starter currently ships with Supabase Auth flow in `src/middleware.ts`. PRD specifies HMAC-signed shared-credential cookie. Feature work, not deploy work.

@@ -5,16 +5,7 @@ import { getBrand } from "@/lib/brand-settings/queries";
 import { getProjectById } from "@/lib/projects/queries";
 import { renderReportPdf } from "@/lib/pdf/render";
 import { reportDocument } from "@/lib/pdf/report-document";
-
-// Slugify a value into a safe filename token: lowercase, non-alphanumerics → "-",
-// collapsed and trimmed. Falls back to "report" when nothing usable remains.
-function fileToken(value: string): string {
-  const token = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return token || "report";
-}
+import { fileToken } from "@/lib/pdf/filename";
 
 // GET /api/reports/[id]/pdf — render the current report to a branded PDF and
 // return it as a download. Inherits the session gate from middleware (the path

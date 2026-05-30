@@ -2,19 +2,25 @@
 import Layout from "@/layouts/Layout.astro";
 import DeleteReportButton from "@/components/reports/DeleteReportButton";
 import ReportForm from "@/components/reports/ReportForm";
+import SendToClientButton from "@/components/reports/SendToClientButton";
+import SendToPmButton from "@/components/reports/SendToPmButton";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
+import { listContacts } from "@/lib/pm-contacts/queries";
 import { getReport } from "@/lib/reports/queries";
+import { getSendSummary } from "@/lib/report-sends/queries";
 
 const slug = Astro.params.slug ?? "";
 const id = Astro.params.id ?? "";
 const client = createSupabaseClient();
 
-const [project, report, catalog] = await Promise.all([
+const [project, report, catalog, contacts, sends] = await Promise.all([
   getProjectBySlug(client, slug),
   getReport(client, id),
   listCatalog(client),
+  listContacts(client),
+  getSendSummary(client, id),
 ]);
 
 if (!project) {
@@ -26,7 +32,16 @@ if (!report) {
 
 const error = Astro.url.searchParams.get("error");
 const ok = Astro.url.searchParams.get("ok");
-const okMessage = ok === "created" ? "Report created." : ok === "saved" ? "Changes saved." : null;
+const okMessage =
+  ok === "created"
+    ? "Report created."
+    : ok === "saved"
+      ? "Changes saved."
+      : ok === "sent-pm"
+        ? "Report sent to the PM."
+        : ok === "sent-client"
+          ? "Report sent to the client."
+          : null;
 
 // Catalog names feed the plugin-row datalist combobox in the form (Phase 5).
 const catalogNames = catalog.map((c) => c.name);
@@ -46,6 +61,20 @@ const catalogNames = catalog.map((c) => c.name);
           >
             Download PDF
           </a>
+          <SendToPmButton
+            reportId={report.id}
+            slug={project.slug}
+            contacts={contacts.map((c) => ({ id: c.id, name: c.name, email: c.email }))}
+            lastSend={sends.pm}
+            client:load
+          />
+          <SendToClientButton
+            reportId={report.id}
+            slug={project.slug}
+            clientEmail={project.contact_email}
+            lastSend={sends.client}
+            client:load
+          />
           <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
         </div>
       </div>
