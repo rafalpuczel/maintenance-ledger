@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       brand_settings: {
@@ -92,6 +97,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_recurring_plugins: {
+        Row: {
+          created_at: string
+          id: string
+          plugin_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plugin_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plugin_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_recurring_plugins_plugin_id_fkey"
+            columns: ["plugin_id"]
+            isOneToOne: false
+            referencedRelation: "plugin_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_recurring_plugins_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
@@ -270,4 +311,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
