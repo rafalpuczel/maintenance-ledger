@@ -1,0 +1,41 @@
+---
+import AppShell from "@/layouts/AppShell.astro";
+import EmailTemplatesForm from "@/components/email-templates/EmailTemplatesForm";
+import { createSupabaseClient } from "@/lib/supabase";
+import { getEmailTemplates } from "@/lib/email-templates/queries";
+import { getBrand } from "@/lib/brand-settings/queries";
+
+const client = createSupabaseClient();
+const [templates, brand] = await Promise.all([getEmailTemplates(client), getBrand(client)]);
+
+const updatedAt = templates ? new Date(templates.updated_at).toLocaleString() : null;
+---
+
+<AppShell title="Email templates">
+  <div class="mx-auto max-w-3xl">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold tracking-tight">Email templates</h1>
+      <p class="text-muted-foreground mt-1 text-sm">
+        The subject and body used when a report is emailed. Set separate copy for PMs and for clients; placeholders are
+        filled in automatically when a report is sent.
+      </p>
+    </div>
+
+    <div class="border-border bg-card rounded-xl border p-8 shadow-sm">
+      <EmailTemplatesForm
+        action="/api/email-templates"
+        updatedAt={updatedAt}
+        agencyName={brand?.agency_name ?? null}
+        initial={templates
+          ? {
+              pm_subject: templates.pm_subject,
+              pm_body: templates.pm_body,
+              client_subject: templates.client_subject,
+              client_body: templates.client_body,
+            }
+          : undefined}
+        client:load
+      />
+    </div>
+  </div>
+</AppShell>

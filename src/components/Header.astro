@@ -7,7 +7,7 @@ interface Props {
 }
 const { pathname } = Astro.props;
 
-const settingsPaths = ["/brand-settings", "/plugins-catalog", "/pm-contacts"];
+const settingsPaths = ["/brand-settings", "/email-templates", "/plugins-catalog", "/pm-contacts"];
 const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 const settingsActive = settingsPaths.some((p) => pathname.startsWith(p));
 
@@ -48,6 +48,11 @@ const navLink =
             href="/brand-settings"
             class="text-popover-foreground hover:bg-accent block px-3 py-2 text-sm"
             aria-current={pathname.startsWith("/brand-settings") ? "page" : undefined}>Brand settings</a
+          >
+          <a
+            href="/email-templates"
+            class="text-popover-foreground hover:bg-accent block px-3 py-2 text-sm"
+            aria-current={pathname.startsWith("/email-templates") ? "page" : undefined}>Email templates</a
           >
           <a
             href="/plugins-catalog"
@@ -95,6 +100,11 @@ const navLink =
           href="/brand-settings"
           class="text-popover-foreground hover:bg-accent block px-4 py-2.5 text-sm"
           aria-current={pathname.startsWith("/brand-settings") ? "page" : undefined}>Brand settings</a
+        >
+        <a
+          href="/email-templates"
+          class="text-popover-foreground hover:bg-accent block px-4 py-2.5 text-sm"
+          aria-current={pathname.startsWith("/email-templates") ? "page" : undefined}>Email templates</a
         >
         <a
           href="/plugins-catalog"

@@ -357,19 +357,19 @@ If neither sanitizer bundles on workerd, the documented fallback is a plain-text
 
 #### Manual
 
-- [ ] 1.7 Chosen sanitizer runs without a runtime error under `wrangler dev`/preview on a sample input
-- [ ] 1.8 `email_templates` row absent by default; manual upsert creates exactly one row (no duplicates possible)
-- [ ] 1.9 Rendering a hand-built context produces expected sanitized HTML and a clean subject
+- [x] 1.7 Chosen sanitizer runs without a runtime error under `wrangler dev`/preview on a sample input — 4c2121f
+- [x] 1.8 `email_templates` row absent by default; manual upsert creates exactly one row (no duplicates possible) — 4c2121f
+- [x] 1.9 Rendering a hand-built context produces expected sanitized HTML and a clean subject — 4c2121f
 - [x] 1.10 Spike verdict recorded in `spike-sanitizer.md` (chosen editor + sanitizer + any shim) — 4c2121f
 
 ### Phase 2: Settings page + WYSIWYG form island
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx astro check`
-- [ ] 2.2 Linting passes (exit code): `npm run lint`
-- [ ] 2.3 Build succeeds (editor + sanitizer bundle): `npm run build`
-- [ ] 2.4 Existing tests still pass: `npm test`
+- [x] 2.1 Type checking passes: `npx astro check`
+- [x] 2.2 Linting passes (exit code): `npm run lint`
+- [x] 2.3 Build succeeds (editor + sanitizer bundle): `npm run build`
+- [x] 2.4 Existing tests still pass: `npm test`
 
 #### Manual
 
