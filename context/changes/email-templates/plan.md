@@ -384,10 +384,10 @@ If neither sanitizer bundles on workerd, the documented fallback is a plain-text
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npx astro check`
-- [x] 3.2 Linting passes (exit code): `npm run lint`
-- [x] 3.3 All unit tests pass: `npm test`
-- [x] 3.4 Build succeeds: `npm run build`
+- [x] 3.1 Type checking passes: `npx astro check` — 9f1c2a8
+- [x] 3.2 Linting passes (exit code): `npm run lint` — 9f1c2a8
+- [x] 3.3 All unit tests pass: `npm test` — 9f1c2a8
+- [x] 3.4 Build succeeds: `npm run build` — 9f1c2a8
 
 #### Manual
 
