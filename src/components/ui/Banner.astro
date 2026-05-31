@@ -1,0 +1,19 @@
+---
+// Accessible outcome banner for the existing ?ok=/?error= query-string pattern.
+// Mechanism is unchanged (still post-redirect query flags); this only restyles
+// the message and gives it the right live-region role. Async toasts are S-11.
+interface Props {
+  variant: "success" | "error";
+  message: string;
+  class?: string;
+}
+const props: Props = Astro.props;
+const isError = props.variant === "error";
+const styles = isError
+  ? "border-destructive/30 bg-destructive/10 text-destructive"
+  : "border-primary/20 bg-accent text-accent-foreground";
+---
+
+<div role={isError ? "alert" : "status"} class:list={["mb-4 rounded-lg border px-3 py-2 text-sm", styles, props.class]}>
+  {props.message}
+</div>

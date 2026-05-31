@@ -1,0 +1,22 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  class?: string;
+}
+const { title, description, class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    "border-border bg-card flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center",
+    className,
+  ]}
+>
+  {/* Optional leading icon slot */}
+  <slot name="icon" />
+  <p class="text-foreground text-base font-medium">{title}</p>
+  {description && <p class="text-muted-foreground mt-1 max-w-sm text-sm">{description}</p>}
+  {/* Optional call-to-action slot (e.g. a link/button) */}
+  <div class="mt-4 empty:hidden"><slot /></div>
+</div>
