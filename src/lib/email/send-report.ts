@@ -3,6 +3,9 @@ import { RESEND_API_KEY, REPORT_FROM_EMAIL } from "astro:env/server";
 import type { Report } from "@/lib/reports/queries";
 import type { Brand } from "@/lib/brand-settings/queries";
 import type { Project } from "@/lib/projects/queries";
+import type { EmailTemplates } from "@/lib/email-templates/queries";
+import type { RecipientType } from "@/lib/report-sends/schema";
+import { renderTemplate, monthLabel, type TemplateContext } from "@/lib/email-templates/render";
 import { renderReportPdf } from "@/lib/pdf/render";
 import { reportDocument } from "@/lib/pdf/report-document";
 import { fileToken } from "@/lib/pdf/filename";
@@ -29,27 +32,41 @@ export interface SendReportArgs {
   brand: Brand | null;
   project: Project;
   to: string;
+  recipientType: RecipientType;
+  // The stored templates (or null when none saved). Loaded by the route so this
+  // function stays I/O-light and testable; null falls back to the default copy.
+  templates: EmailTemplates | null;
 }
 
 // Render the report's branded PDF and dispatch it to one recipient via Resend,
-// using the fixed transactional template (no editable templates — Non-Goals).
-// Throws on a missing key or any Resend error so the route can enforce US-01's
-// record-on-success-only rule. The body intentionally carries no project
-// internal notes or contact details — only the agency/report identity — so the
-// no-leak NFR holds for the email as it does for the PDF.
-export async function sendReportEmail({ report, brand, project, to }: SendReportArgs): Promise<void> {
+// using the recipient's stored template (or the built-in default copy when none
+// is saved). Throws on a missing key or any Resend error so the route can
+// enforce US-01's record-on-success-only rule. The message body is built only
+// from vetted, non-leaky tokens and is server-sanitized by renderTemplate, so
+// the no-leak NFR holds for the email as it does for the PDF.
+export async function sendReportEmail({
+  report,
+  brand,
+  project,
+  to,
+  recipientType,
+  templates,
+}: SendReportArgs): Promise<void> {
   if (!RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is not configured");
   }
 
   const pdf = await renderReportPdf(reportDocument({ report, brand }));
   const filename = `${fileToken(project.slug)}-${report.month}.pdf`;
-  const agency = brand?.agency_name ?? "Maintenance Report";
-  const subject = `${project.name} — maintenance report ${report.month}`;
-  const html =
-    `<p>Hi,</p>` +
-    `<p>Please find attached the maintenance report for <strong>${project.name}</strong> (${report.month}).</p>` +
-    `<p>— ${agency}</p>`;
+
+  const ctx: TemplateContext = {
+    project: project.name,
+    month: report.month,
+    month_label: monthLabel(report.month),
+    agency: brand?.agency_name ?? "Maintenance Report",
+    client_name: project.contact_name ?? "",
+  };
+  const { subject, html } = renderTemplate({ templates, recipientType, ctx });
 
   const resend = new Resend(RESEND_API_KEY);
   const { error } = await resend.emails.send({

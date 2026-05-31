@@ -3,6 +3,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { getReport } from "@/lib/reports/queries";
 import { getBrand } from "@/lib/brand-settings/queries";
 import { getProjectById } from "@/lib/projects/queries";
+import { getEmailTemplates } from "@/lib/email-templates/queries";
 import { sendReportEmail } from "@/lib/email/send-report";
 import { recordSend } from "@/lib/report-sends/queries";
 import { recipientTypeSchema } from "@/lib/report-sends/schema";
@@ -28,7 +29,11 @@ export const POST: APIRoute = async (context) => {
   if (!report) {
     return actionError({ error: "Report not found" }, 404);
   }
-  const [brand, project] = await Promise.all([getBrand(client), getProjectById(client, report.project_id)]);
+  const [brand, project, templates] = await Promise.all([
+    getBrand(client),
+    getProjectById(client, report.project_id),
+    getEmailTemplates(client),
+  ]);
   if (!project) {
     return actionError({ error: "Project not found" }, 404);
   }
@@ -53,7 +58,7 @@ export const POST: APIRoute = async (context) => {
 
   // Dispatch first; only record on success (US-01).
   try {
-    await sendReportEmail({ report, brand, project, to });
+    await sendReportEmail({ report, brand, project, to, recipientType, templates });
   } catch {
     return actionError({ error: "Could not send the email" }, 502);
   }
