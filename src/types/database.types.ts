@@ -39,6 +39,36 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          client_body: string
+          client_subject: string
+          created_at: string
+          id: boolean
+          pm_body: string
+          pm_subject: string
+          updated_at: string
+        }
+        Insert: {
+          client_body?: string
+          client_subject?: string
+          created_at?: string
+          id?: boolean
+          pm_body?: string
+          pm_subject?: string
+          updated_at?: string
+        }
+        Update: {
+          client_body?: string
+          client_subject?: string
+          created_at?: string
+          id?: boolean
+          pm_body?: string
+          pm_subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plugin_catalog: {
         Row: {
           created_at: string
