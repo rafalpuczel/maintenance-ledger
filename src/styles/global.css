@@ -5,37 +5,44 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Light, professional B2B palette (Linear/Stripe-style): a faint cool-gray
+     page background with white cards, a single trustworthy indigo brand hue,
+     and AA-contrast text pairs. */
+  --background: oklch(0.985 0.002 264);
+  --foreground: oklch(0.21 0.015 264);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.015 264);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.21 0.015 264);
+  --primary: oklch(0.52 0.2 264);
+  --primary-foreground: oklch(0.985 0.002 264);
+  --secondary: oklch(0.967 0.004 264);
+  --secondary-foreground: oklch(0.3 0.015 264);
+  --muted: oklch(0.967 0.004 264);
+  --muted-foreground: oklch(0.5 0.02 264);
+  --accent: oklch(0.96 0.012 264);
+  --accent-foreground: oklch(0.42 0.12 264);
+  --destructive: oklch(0.55 0.2 27);
+  --border: oklch(0.92 0.005 264);
+  --input: oklch(0.92 0.005 264);
+  --ring: oklch(0.52 0.2 264);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0.002 264);
+  --sidebar-foreground: oklch(0.21 0.015 264);
+  --sidebar-primary: oklch(0.52 0.2 264);
+  --sidebar-primary-foreground: oklch(0.985 0.002 264);
+  --sidebar-accent: oklch(0.96 0.012 264);
+  --sidebar-accent-foreground: oklch(0.42 0.12 264);
+  --sidebar-border: oklch(0.92 0.005 264);
+  --sidebar-ring: oklch(0.52 0.2 264);
+  /* Soft elevation scale — subtle, product-grade card shadows. */
+  --shadow-xs: 0 1px 2px 0 oklch(0.21 0.015 264 / 0.05);
+  --shadow-sm: 0 1px 3px 0 oklch(0.21 0.015 264 / 0.08), 0 1px 2px -1px oklch(0.21 0.015 264 / 0.06);
+  --shadow-md: 0 4px 12px -2px oklch(0.21 0.015 264 / 0.1), 0 2px 6px -2px oklch(0.21 0.015 264 / 0.06);
 }
 
 .dark {
@@ -108,10 +115,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@utility bg-cosmic {
-  background-image: linear-gradient(to bottom, #0a0e1a, #0f1529, #0a0e1a);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
 }
 
 @layer base {
