@@ -415,9 +415,9 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Manual
 
-- [ ] 1.6 A throwaway `toast()` renders an accessible auto-dismissing toast on an AppShell page
-- [ ] 1.7 `ConfirmDialog` opens, traps focus, closes on Esc/Cancel, gates Confirm on `confirmWord`
-- [ ] 1.8 No existing page behavior changed (forms still POST→redirect)
+- [x] 1.6 A throwaway `toast()` renders an accessible auto-dismissing toast on an AppShell page
+- [x] 1.7 `ConfirmDialog` opens, traps focus, closes on Esc/Cancel, gates Confirm on `confirmWord`
+- [x] 1.8 No existing page behavior changed (forms still POST→redirect)
 
 ### Phase 2: Route JSON contract
 
@@ -432,9 +432,9 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Manual
 
-- [ ] 2.7 Hitting a converted route returns JSON with the right status, not a 302
-- [ ] 2.8 The send route still dispatches-then-records (forced failure records nothing)
-- [ ] 2.9 Field errors return `{ error, field }`; generic errors return `{ error }`
+- [x] 2.7 Hitting a converted route returns JSON with the right status, not a 302
+- [x] 2.8 The send route still dispatches-then-records (forced failure records nothing)
+- [x] 2.9 Field errors return `{ error, field }`; generic errors return `{ error }`
 
 ### Phase 3: Settings list pages → client data layer
 
@@ -447,10 +447,10 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Manual
 
-- [ ] 3.5 Add/edit/delete a PM contact, catalog entry, recurring plugin — each updates in place with a toast, no reload
-- [ ] 3.6 Duplicate triggers inline field error or already-on-list toast, no false success
-- [ ] 3.7 Delete confirm is the shared `ConfirmDialog`, consistent across all three
-- [ ] 3.8 Only the acted-on control disables + spins
+- [x] 3.5 Add/edit/delete a PM contact, catalog entry, recurring plugin — each updates in place with a toast, no reload
+- [x] 3.6 Duplicate triggers inline field error or already-on-list toast, no false success
+- [x] 3.7 Delete confirm is the shared `ConfirmDialog`, consistent across all three
+- [x] 3.8 Only the acted-on control disables + spins
 
 ### Phase 4: Projects & reports lists + create / delete
 
@@ -463,12 +463,12 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Manual
 
-- [ ] 4.5 Create project → lands on new project page with a toast, no flash
-- [ ] 4.6 Edit project (incl. slug change) → updates/navigates with toast, slug-taken inline
-- [ ] 4.7 Delete project → ConfirmDialog type-the-name, then navigates to list with toast
-- [ ] 4.8 Create report → report page + toast; delete report → ConfirmDialog → project + toast
-- [ ] 4.9 Projects & reports lists reflect create/delete in place
-- [ ] 4.10 Back/forward works after pushState navigations (deep links intact)
+- [x] 4.5 Create project → lands on new project page with a toast, no flash
+- [x] 4.6 Edit project (incl. slug change) → updates/navigates with toast, slug-taken inline
+- [x] 4.7 Delete project → ConfirmDialog type-the-name, then navigates to list with toast
+- [x] 4.8 Create report → report page + toast; delete report → ConfirmDialog → project + toast
+- [x] 4.9 Projects & reports lists reflect create/delete in place
+- [x] 4.10 Back/forward works after pushState navigations (deep links intact)
 
 ### Phase 5: Report authoring Save + Send paths
 
@@ -481,20 +481,20 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Manual
 
-- [ ] 5.5 Save → control spins through PDF render, success toast, PDF link reflects new render, no reload
-- [ ] 5.6 Forced PDF-render failure → save reflected + warning toast (not false-success, not hard error)
-- [ ] 5.7 Send to PM and client → success toast, delivery strip updates inline, button flips to "Re-send", no reload
-- [ ] 5.8 Re-send → ConfirmDialog gates dispatch, strip updates
-- [ ] 5.9 Forced send failure → error toast, no send recorded, strip unchanged (US-01 holds)
-- [ ] 5.10 Disabled-Send tooltips still work and are keyboard-reachable
+- [x] 5.5 Save → control spins through PDF render, success toast, PDF link reflects new render, no reload
+- [x] 5.6 Forced PDF-render failure → save reflected + warning toast (not false-success, not hard error)
+- [x] 5.7 Send to PM and client → success toast, delivery strip updates inline, button flips to "Re-send", no reload
+- [x] 5.8 Re-send → ConfirmDialog gates dispatch, strip updates
+- [x] 5.9 Forced send failure → error toast, no send recorded, strip unchanged (US-01 holds)
+- [x] 5.10 Disabled-Send tooltips still work and are keyboard-reachable
 
 ### Phase 6: UX recommendations deliverable
 
 #### Automated
 
-- [x] 6.1 File exists: `context/changes/async-ux/ux-recommendations.md`
+- [x] 6.1 File exists: `context/changes/async-ux/ux-recommendations.md` — 4ecc324
 
 #### Manual
 
-- [ ] 6.2 Doc covers all six conventions and reads as a usable reference
-- [ ] 6.3 Each recommendation names its canonical code location
+- [x] 6.2 Doc covers all six conventions and reads as a usable reference
+- [x] 6.3 Each recommendation names its canonical code location
