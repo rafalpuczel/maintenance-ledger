@@ -9,7 +9,7 @@ interface Props {
 }
 
 const inputClass =
-  "rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none";
+  "min-w-0 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none";
 
 function emptyRow(): LicenseRow {
   return { name: "", status: "expiring", expiry_date: null, notes: null };
@@ -36,7 +36,7 @@ export default function LicensesRepeater({ rows, onChange }: Props) {
         <ul className="space-y-3">
           {rows.map((row, i) => (
             <li key={i} className="border-border bg-card rounded-lg border p-3">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_1fr_auto] sm:items-center">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_1fr_auto] sm:items-center">
                 <input
                   name={licenseFieldName(i, "name")}
                   value={row.name}

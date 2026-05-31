@@ -82,60 +82,59 @@ export default function SendToPmButton({ reportId, slug, contacts, lastSend }: P
     );
   }
 
+  // The "last sent" history is shown by the page's delivery strip, not inline
+  // here — keeps the action row uniform.
   return (
-    <div className="flex flex-col items-end">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button type="button" variant="outline">
-            <Send className="size-4" />
-            {lastSend ? "Re-send to PM" : "Send to PM"}
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              <Users className="text-primary size-5" />
-              {lastSend ? "Re-send to a PM" : "Send to a PM"}
-            </DialogTitle>
-            {lastSend && <DialogDescription>{sentLine}.</DialogDescription>}
-          </DialogHeader>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline">
+          <Send className="size-4" />
+          {lastSend ? "Re-send to PM" : "Send to PM"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            <Users className="text-primary size-5" />
+            {lastSend ? "Re-send to a PM" : "Send to a PM"}
+          </DialogTitle>
+          {lastSend && <DialogDescription>{sentLine}.</DialogDescription>}
+        </DialogHeader>
 
-          <div>
-            <Label htmlFor="pm-select">Recipient</Label>
-            <select
-              id="pm-select"
-              value={selectedId}
-              onChange={(e) => {
-                setSelectedId(e.target.value);
-              }}
-              className="border-input bg-card text-foreground focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-lg border px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none"
-            >
-              {contacts.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.email})
-                </option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <Label htmlFor="pm-select">Recipient</Label>
+          <select
+            id="pm-select"
+            value={selectedId}
+            onChange={(e) => {
+              setSelectedId(e.target.value);
+            }}
+            className="border-input bg-card text-foreground focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-lg border px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none"
+          >
+            {contacts.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.email})
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <form method="POST" action={action}>
-              <input type="hidden" name="slug" value={slug} />
-              <input type="hidden" name="recipient_type" value="pm" />
-              <input type="hidden" name="pm_email" value={selected?.email ?? ""} />
-              <input type="hidden" name="pm_name" value={selected?.name ?? ""} />
-              <input type="hidden" name="pm_contact_id" value={selected?.id ?? ""} />
-              <SubmitSend />
-            </form>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      {sentLine && <p className="text-muted-foreground mt-1 text-xs">{sentLine}</p>}
-    </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <form method="POST" action={action}>
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="recipient_type" value="pm" />
+            <input type="hidden" name="pm_email" value={selected?.email ?? ""} />
+            <input type="hidden" name="pm_name" value={selected?.name ?? ""} />
+            <input type="hidden" name="pm_contact_id" value={selected?.id ?? ""} />
+            <SubmitSend />
+          </form>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

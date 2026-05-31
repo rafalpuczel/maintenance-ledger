@@ -5,7 +5,7 @@ import DeleteReportButton from "@/components/reports/DeleteReportButton";
 import ReportForm from "@/components/reports/ReportForm";
 import SendToClientButton from "@/components/reports/SendToClientButton";
 import SendToPmButton from "@/components/reports/SendToPmButton";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Users, Mail } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -89,6 +89,38 @@ const catalogNames = catalog.map((c) => c.name);
           client:load
         />
         <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
+      </div>
+    </div>
+
+    {/* Delivery status — send history for both recipients, out of the button row */}
+    <div class="border-border bg-border mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
+      <div class="bg-card flex items-center gap-2 px-4 py-2.5 text-sm">
+        <Users className="text-muted-foreground size-4 shrink-0" />
+        <span class="text-muted-foreground">PM:</span>
+        {
+          sends.pm ? (
+            <span class="text-foreground truncate">
+              {sends.pm.email}
+              <span class="text-muted-foreground"> · {new Date(sends.pm.sentAt).toLocaleDateString()}</span>
+            </span>
+          ) : (
+            <span class="text-muted-foreground">Not sent yet</span>
+          )
+        }
+      </div>
+      <div class="bg-card flex items-center gap-2 px-4 py-2.5 text-sm">
+        <Mail className="text-muted-foreground size-4 shrink-0" />
+        <span class="text-muted-foreground">Client:</span>
+        {
+          sends.client ? (
+            <span class="text-foreground truncate">
+              {sends.client.email}
+              <span class="text-muted-foreground"> · {new Date(sends.client.sentAt).toLocaleDateString()}</span>
+            </span>
+          ) : (
+            <span class="text-muted-foreground">Not sent yet</span>
+          )
+        }
       </div>
     </div>
 

@@ -86,39 +86,38 @@ export default function SendToClientButton({ reportId, slug, clientEmail, lastSe
     );
   }
 
+  // Re-send: confirm via Dialog first. The "last sent" history is shown by the
+  // page's delivery strip, not inline here — keeps the action row uniform.
   return (
-    <div className="flex flex-col items-end">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button type="button" variant="outline">
-            <Send className="size-4" />
-            Re-send to client
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              <TriangleAlert className="text-primary size-5" />
-              Re-send to client?
-            </DialogTitle>
-            <DialogDescription>
-              This emails the current PDF to {clientEmail} again. {sentLine}.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <form method="POST" action={action}>
-              {hiddenFields}
-              <SubmitSend label="Re-send" />
-            </form>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      {sentLine && <p className="text-muted-foreground mt-1 text-xs">{sentLine}</p>}
-    </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline">
+          <Send className="size-4" />
+          Re-send to client
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            <TriangleAlert className="text-primary size-5" />
+            Re-send to client?
+          </DialogTitle>
+          <DialogDescription>
+            This emails the current PDF to {clientEmail} again. {sentLine}.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <form method="POST" action={action}>
+            {hiddenFields}
+            <SubmitSend label="Re-send" />
+          </form>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
