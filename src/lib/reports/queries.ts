@@ -23,6 +23,16 @@ export interface ReportSummary {
   created_at: string;
 }
 
+// Cross-project recent report, joined to its project for the dashboard link.
+// Read-only and bounded — this is a recent-activity list, not a reports feed.
+export interface RecentReport {
+  id: string;
+  month: string;
+  created_at: string;
+  project_name: string;
+  project_slug: string;
+}
+
 function toReport(row: ReportRow): Report {
   return {
     ...row,
@@ -72,6 +82,32 @@ export async function getReport(client: Client, id: string): Promise<Report | nu
     throw new Error(error.message);
   }
   return data ? toReport(data) : null;
+}
+
+// Latest reports across all projects (most recent first), each joined to its
+// project name + slug so the dashboard can link straight to the report page.
+// Bounded by `limit`; powers the home dashboard's recent-activity list only.
+export async function listRecentReports(client: Client, limit = 5): Promise<RecentReport[]> {
+  const { data, error } = await client
+    .from("reports")
+    .select("id, month, created_at, projects(name, slug)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data.map((row) => {
+    // PostgREST types a to-one embed as an object|null depending on the FK; we
+    // read it defensively in case a report's project was concurrently deleted.
+    const project = row.projects as { name: string; slug: string } | null;
+    return {
+      id: row.id,
+      month: row.month,
+      created_at: row.created_at,
+      project_name: project ? project.name : "Unknown project",
+      project_slug: project ? project.slug : "",
+    };
+  });
 }
 
 export async function listReportsByProject(client: Client, projectId: string): Promise<ReportSummary[]> {
