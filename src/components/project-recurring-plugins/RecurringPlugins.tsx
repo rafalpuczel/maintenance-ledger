@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Package, Plus, Trash2 } from "lucide-react";
 import { FormField } from "@/components/auth/FormField";
-import { ServerError } from "@/components/auth/ServerError";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useSubmit } from "@/lib/ui/useSubmit";
+import { toastSuccess, toastError, toastWarning } from "@/lib/ui/toast";
 
 interface RecurringEntry {
   id: string;
@@ -21,38 +22,49 @@ interface Props {
   slug: string;
   recurring: RecurringEntry[];
   catalog: CatalogEntry[];
-  serverError?: string | null;
 }
 
 const ADD_ACTION = "/api/project-recurring-plugins";
 
-export default function RecurringPlugins({ projectId, slug, recurring, catalog, serverError }: Props) {
+export default function RecurringPlugins({ projectId, slug, recurring, catalog }: Props) {
+  // The island owns the recurring list; the add route returns the full refreshed
+  // list, a delete returns the removed id.
+  const [list, setList] = useState<RecurringEntry[]>(recurring);
+
   // Only offer catalog plugins not already on this project's list. The DB unique
   // constraint is the real guard; this just keeps the dropdown tidy.
-  const attached = new Set(recurring.map((r) => r.name.toLowerCase()));
+  const attached = new Set(list.map((r) => r.name.toLowerCase()));
   const addable = catalog.filter((c) => !attached.has(c.name.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      <AddForm projectId={projectId} slug={slug} addable={addable} serverError={serverError} />
-      <RecurringList recurring={recurring} slug={slug} />
-    </div>
-  );
-}
-
-function AddSubmit() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending ? (
-        "Adding..."
+      <AddForm
+        projectId={projectId}
+        slug={slug}
+        addable={addable}
+        onListChanged={(next) => {
+          setList(next);
+        }}
+      />
+      {list.length === 0 ? (
+        <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed p-10 text-center">
+          <p>No recurring plugins yet.</p>
+        </div>
       ) : (
-        <>
-          <Plus className="size-4" />
-          Add plugin
-        </>
+        <ul className="space-y-2">
+          {list.map((entry) => (
+            <li key={entry.id}>
+              <ReadRow
+                entry={entry}
+                onRemoved={() => {
+                  setList((prev) => prev.filter((e) => e.id !== entry.id));
+                }}
+              />
+            </li>
+          ))}
+        </ul>
       )}
-    </Button>
+    </div>
   );
 }
 
@@ -60,35 +72,49 @@ function AddForm({
   projectId,
   slug,
   addable,
-  serverError,
+  onListChanged,
 }: {
   projectId: string;
   slug: string;
   addable: CatalogEntry[];
-  serverError?: string | null;
+  onListChanged: (list: RecurringEntry[]) => void;
 }) {
   const [pluginId, setPluginId] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | undefined>();
+  const { submit, pending } = useSubmit<RecurringEntry[]>();
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
     if (pluginId === "" && name.trim() === "") {
-      e.preventDefault();
       setError("Pick a plugin or enter a name");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.set("project_id", projectId);
+    fd.set("slug", slug);
+    fd.set("plugin_id", pluginId);
+    fd.set("name", name);
+    const res = await submit(ADD_ACTION, fd);
+    if (res.ok) {
+      if (res.data) onListChanged(res.data);
+      toastSuccess(res.message);
+      setPluginId("");
+      setName("");
+      setError(undefined);
+    } else {
+      // The add form's only typeable field is the name; surface inline there.
+      setError(res.error);
     }
   }
 
   return (
     <form
-      method="POST"
-      action={ADD_ACTION}
       className="border-border bg-card space-y-4 rounded-xl border p-6 shadow-sm"
-      onSubmit={handleSubmit}
+      onSubmit={(e) => void handleSubmit(e)}
       noValidate
     >
-      <input type="hidden" name="project_id" value={projectId} />
-      <input type="hidden" name="slug" value={slug} />
-
       <div>
         <label htmlFor="plugin_id" className="text-foreground mb-1 block text-sm font-medium">
           Pick from catalog
@@ -128,34 +154,33 @@ function AddForm({
         hint={<p className="text-muted-foreground mt-1 text-xs">Adding a new name also saves it to the catalog.</p>}
       />
 
-      <ServerError message={serverError} />
-      <AddSubmit />
+      <Button type="submit" disabled={pending}>
+        {pending ? (
+          "Adding..."
+        ) : (
+          <>
+            <Plus className="size-4" />
+            Add plugin
+          </>
+        )}
+      </Button>
     </form>
   );
 }
 
-function RecurringList({ recurring, slug }: { recurring: RecurringEntry[]; slug: string }) {
-  if (recurring.length === 0) {
-    return (
-      <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed p-10 text-center">
-        <p>No recurring plugins yet.</p>
-      </div>
-    );
+function ReadRow({ entry, onRemoved }: { entry: RecurringEntry; onRemoved: () => void }) {
+  const { submit, pending } = useSubmit<{ id: string }>();
+
+  async function handleRemove() {
+    const res = await submit(`/api/project-recurring-plugins/${entry.id}/delete`, {});
+    if (res.ok) {
+      onRemoved();
+      if (res.warning) toastWarning(res.message);
+      else toastSuccess(res.message);
+    } else {
+      toastError(res.error);
+    }
   }
-
-  return (
-    <ul className="space-y-2">
-      {recurring.map((entry) => (
-        <li key={entry.id}>
-          <ReadRow entry={entry} slug={slug} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ReadRow({ entry, slug }: { entry: RecurringEntry; slug: string }) {
-  const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="border-border bg-card flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
@@ -163,40 +188,26 @@ function ReadRow({ entry, slug }: { entry: RecurringEntry; slug: string }) {
         <p className="truncate font-medium">{entry.name}</p>
         {entry.notes && <p className="text-muted-foreground truncate text-sm">{entry.notes}</p>}
       </div>
-      {confirming ? (
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-destructive text-sm">Remove?</span>
-          <form method="POST" action={`/api/project-recurring-plugins/${entry.id}/delete`}>
-            <input type="hidden" name="slug" value={slug} />
-            <Button type="submit" size="sm" variant="destructive">
-              Confirm
-            </Button>
-          </form>
+      <ConfirmDialog
+        trigger={
           <Button
             type="button"
             size="sm"
-            variant="secondary"
-            onClick={() => {
-              setConfirming(false);
-            }}
+            variant="outline"
+            className="text-destructive hover:text-destructive shrink-0"
           >
-            Cancel
+            <Trash2 className="size-3" />
+            Remove
           </Button>
-        </div>
-      ) : (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="text-destructive hover:text-destructive shrink-0"
-          onClick={() => {
-            setConfirming(true);
-          }}
-        >
-          <Trash2 className="size-3" />
-          Remove
-        </Button>
-      )}
+        }
+        title="Remove plugin?"
+        description={`Remove ${entry.name} from this project's recurring list.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        pending={pending}
+        pendingLabel="Removing..."
+        onConfirm={() => void handleRemove()}
+      />
     </div>
   );
 }

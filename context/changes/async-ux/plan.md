@@ -423,12 +423,12 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro check`
-- [x] 2.2 Linting passes (exit code): `npm run lint`
-- [x] 2.3 Unit tests pass: `npm test`
-- [x] 2.4 Build succeeds: `npm run build`
-- [x] 2.5 No remaining references to `Banner.astro` (grep clean)
-- [x] 2.6 No remaining `searchParams.get("ok"|"error")` outside `login.astro` (grep clean)
+- [x] 2.1 Type checking passes: `npx astro check` — 73e877e
+- [x] 2.2 Linting passes (exit code): `npm run lint` — 73e877e
+- [x] 2.3 Unit tests pass: `npm test` — 73e877e
+- [x] 2.4 Build succeeds: `npm run build` — 73e877e
+- [x] 2.5 No remaining references to `Banner.astro` (grep clean) — 73e877e
+- [x] 2.6 No remaining `searchParams.get("ok"|"error")` outside `login.astro` (grep clean) — 73e877e
 
 #### Manual
 
@@ -440,10 +440,10 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npx astro check`
-- [ ] 3.2 Linting passes (exit code): `npm run lint`
-- [ ] 3.3 Unit tests pass: `npm test`
-- [ ] 3.4 Build succeeds: `npm run build`
+- [x] 3.1 Type checking passes: `npx astro check`
+- [x] 3.2 Linting passes (exit code): `npm run lint`
+- [x] 3.3 Unit tests pass: `npm test`
+- [x] 3.4 Build succeeds: `npm run build`
 
 #### Manual
 
