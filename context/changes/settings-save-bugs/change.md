@@ -1,7 +1,7 @@
 ---
 change_id: settings-save-bugs
 title: Fix save UX on the two settings pages (brand-settings 404 redirect; email-templates missing spinner)
-status: implementing
+status: implemented
 created: 2026-05-31
 updated: 2026-05-31
 archived_at: null

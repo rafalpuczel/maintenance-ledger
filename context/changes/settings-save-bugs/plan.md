@@ -214,16 +214,16 @@ No data migration. Code-only changes to two React island components and one shar
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx astro check`
-- [x] 2.2 Linting passes (exit code): `npm run lint`
-- [x] 2.3 Unit tests pass: `npm test`
-- [x] 2.4 Build succeeds: `npm run build`
+- [x] 2.1 Type checking passes: `npx astro check` — 7172c17
+- [x] 2.2 Linting passes (exit code): `npm run lint` — 7172c17
+- [x] 2.3 Unit tests pass: `npm test` — 7172c17
+- [x] 2.4 Build succeeds: `npm run build` — 7172c17
 
 #### Manual
 
-- [x] 2.5 Saving brand settings stays on `/brand-settings` (fetch returns JSON, no 404, no document load)
-- [x] 2.6 The Save button spins + disables for the request duration
-- [x] 2.7 On success a toast fires and "Last saved" updates without a reload
-- [x] 2.8 Logo round-trip: new logo previews after save and is not re-uploaded on an immediate re-save; remove-logo persists
-- [x] 2.9 Forced error (oversized/wrong-type logo) → error toast AND inline error, no navigation
-- [x] 2.10 Valid save with no logo change preserves the existing logo (untouched path holds)
+- [x] 2.5 Saving brand settings stays on `/brand-settings` (fetch returns JSON, no 404, no document load) — 7172c17
+- [x] 2.6 The Save button spins + disables for the request duration — 7172c17
+- [x] 2.7 On success a toast fires and "Last saved" updates without a reload — 7172c17
+- [x] 2.8 Logo round-trip: new logo previews after save and is not re-uploaded on an immediate re-save; remove-logo persists — 7172c17
+- [x] 2.9 Forced error (oversized/wrong-type logo) → error toast AND inline error, no navigation — 7172c17
+- [x] 2.10 Valid save with no logo change preserves the existing logo (untouched path holds) — 7172c17
