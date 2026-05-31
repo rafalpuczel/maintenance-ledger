@@ -3,7 +3,10 @@ import { Building2, Image as ImageIcon, Save, Trash2 } from "lucide-react";
 import { FormField } from "@/components/auth/FormField";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { ServerError } from "@/components/auth/ServerError";
+import { useSubmit } from "@/lib/ui/useSubmit";
+import { toastSuccess, toastError } from "@/lib/ui/toast";
 import { brandSettingsSchema } from "@/lib/brand-settings/schema";
+import type { Brand } from "@/lib/brand-settings/queries";
 
 interface BrandInitial {
   agency_name: string;
@@ -14,7 +17,6 @@ interface BrandInitial {
 
 interface Props {
   action: string;
-  serverError?: string | null;
   initial?: Partial<BrandInitial>;
   updatedAt?: string | null;
 }
@@ -28,19 +30,26 @@ const DEFAULTS: BrandInitial = {
 
 type FieldErrors = Partial<Record<"agency_name" | "primary_color" | "secondary_color", string>>;
 
-export default function BrandSettingsForm({ action, serverError, initial, updatedAt }: Props) {
+export default function BrandSettingsForm({ action, initial, updatedAt }: Props) {
   const merged = { ...DEFAULTS, ...initial };
+  const { submit, pending } = useSubmit<Brand>();
   const [agencyName, setAgencyName] = useState(merged.agency_name);
   const [primaryColor, setPrimaryColor] = useState(merged.primary_color);
   const [secondaryColor, setSecondaryColor] = useState(merged.secondary_color);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // "Last saved" label and the persisted-logo baseline are seeded from SSR props
+  // and patched from the save response, so the form stays truthful after an
+  // in-place save without a reload.
+  const [savedAt, setSavedAt] = useState<string | null>(updatedAt ?? null);
+  const [existingLogo, setExistingLogo] = useState<string | null>(merged.logo);
 
   // Logo preview: the existing stored logo, replaced by an object URL when the
   // user picks a file, cleared when they choose Remove.
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
 
-  const existingLogo = merged.logo;
   const previewSrc = filePreview ?? (removed ? null : existingLogo);
 
   // Revoke the object URL when it changes or on unmount to avoid a memory leak.
@@ -72,30 +81,63 @@ export default function BrandSettingsForm({ action, serverError, initial, update
     }
   }
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setServerError(null);
+
     const result = brandSettingsSchema.safeParse({
       agency_name: agencyName,
       primary_color: primaryColor,
       secondary_color: secondaryColor,
     });
     if (!result.success) {
-      e.preventDefault();
       const next: FieldErrors = {};
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof FieldErrors;
         next[key] ??= issue.message;
       }
       setErrors(next);
+      return;
+    }
+
+    // Same multipart payload the native form posted, so the route's parser sees
+    // an identical request.
+    const body = new FormData();
+    body.set("agency_name", agencyName);
+    body.set("primary_color", primaryColor);
+    body.set("secondary_color", secondaryColor);
+    const file = e.currentTarget.elements.namedItem("logo");
+    if (file instanceof HTMLInputElement && file.files?.[0]) {
+      body.set("logo", file.files[0]);
+    }
+    if (removed) {
+      body.set("remove_logo", "1");
+    }
+
+    const res = await submit(action, body);
+    if (res.ok) {
+      toastSuccess(res.message);
+      // Reflect the persisted row: refresh the "last saved" label and adopt the
+      // server logo as the new baseline, clearing the local pick so a re-save
+      // doesn't re-upload and the preview matches what's stored.
+      if (res.data) {
+        setSavedAt(new Date(res.data.updated_at).toLocaleString());
+        setExistingLogo(res.data.logo);
+      }
+      setFilePreview(null);
+      setRemoved(false);
+    } else {
+      setServerError(res.error);
+      toastError(res.error);
     }
   }
 
   return (
     <form
-      method="POST"
-      action={action}
-      encType="multipart/form-data"
       className="space-y-5"
-      onSubmit={handleSubmit}
+      onSubmit={(e) => {
+        void handleSubmit(e);
+      }}
       noValidate
     >
       <FormField
@@ -171,11 +213,11 @@ export default function BrandSettingsForm({ action, serverError, initial, update
 
       <ServerError message={serverError} />
 
-      <SubmitButton pendingText="Saving..." icon={<Save className="size-4" />}>
+      <SubmitButton pending={pending} pendingText="Saving..." icon={<Save className="size-4" />}>
         Save changes
       </SubmitButton>
 
-      {updatedAt && <p className="text-muted-foreground text-center text-xs">Last saved {updatedAt}</p>}
+      {savedAt && <p className="text-muted-foreground text-center text-xs">Last saved {savedAt}</p>}
     </form>
   );
 }

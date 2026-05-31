@@ -200,15 +200,15 @@ No data migration. Code-only changes to two React island components and one shar
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx astro check`
-- [x] 1.2 Linting passes (exit code): `npm run lint`
-- [x] 1.3 Unit tests pass: `npm test`
-- [x] 1.4 Build succeeds: `npm run build`
+- [x] 1.1 Type checking passes: `npx astro check` — 2b8248b
+- [x] 1.2 Linting passes (exit code): `npm run lint` — 2b8248b
+- [x] 1.3 Unit tests pass: `npm test` — 2b8248b
+- [x] 1.4 Build succeeds: `npm run build` — 2b8248b
 
 #### Manual
 
-- [x] 1.5 Saving email templates shows the spinner + "Saving..." for the request duration, then the success toast
-- [x] 1.6 Login page still shows its "Signing in..." spinner (native-POST `useFormStatus` fallback intact)
+- [x] 1.5 Saving email templates shows the spinner + "Saving..." for the request duration, then the success toast — 2b8248b
+- [x] 1.6 Login page still shows its "Signing in..." spinner (native-POST `useFormStatus` fallback intact) — 2b8248b
 
 ### Phase 2: Convert `BrandSettingsForm` to async submit
 
