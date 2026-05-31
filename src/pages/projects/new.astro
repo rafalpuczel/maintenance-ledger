@@ -2,8 +2,6 @@
 import AppShell from "@/layouts/AppShell.astro";
 import ProjectForm from "@/components/projects/ProjectForm";
 import { ArrowLeft } from "lucide-react";
-
-const error = Astro.url.searchParams.get("error");
 ---
 
 <AppShell title="New project">
@@ -17,7 +15,7 @@ const error = Astro.url.searchParams.get("error");
     </a>
     <div class="border-border bg-card rounded-xl border p-8 shadow-sm">
       <h1 class="mb-6 text-2xl font-bold tracking-tight">New project</h1>
-      <ProjectForm action="/api/projects" mode="create" serverError={error} client:load />
+      <ProjectForm action="/api/projects" mode="create" client:load />
     </div>
   </div>
 </AppShell>

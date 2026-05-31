@@ -2,18 +2,19 @@ import type { APIRoute } from "astro";
 import { createSupabaseClient } from "@/lib/supabase";
 import { upsertBrand } from "@/lib/brand-settings/queries";
 import { parseBrandForm } from "@/lib/brand-settings/form";
+import { actionOk, actionError } from "@/lib/ui/response";
 
 export const POST: APIRoute = async (context) => {
   const form = await context.request.formData();
   const parsed = await parseBrandForm(form);
   if (!parsed.ok) {
-    return context.redirect(`/brand-settings?error=${encodeURIComponent(parsed.message)}`);
+    return actionError({ error: parsed.message });
   }
 
   try {
-    await upsertBrand(createSupabaseClient(), parsed.data);
-    return context.redirect("/brand-settings?ok=saved");
+    const brand = await upsertBrand(createSupabaseClient(), parsed.data);
+    return actionOk({ message: "Brand settings saved.", data: brand });
   } catch {
-    return context.redirect("/brand-settings?error=Could%20not%20save%20brand%20settings");
+    return actionError({ error: "Could not save brand settings" }, 500);
   }
 };

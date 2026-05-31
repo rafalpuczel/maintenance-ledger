@@ -1,22 +1,10 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import Banner from "@/components/ui/Banner.astro";
 import PluginCatalog from "@/components/plugins-catalog/PluginCatalog";
 import { createSupabaseClient } from "@/lib/supabase";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
 
 const entries = await listCatalog(createSupabaseClient());
-
-const error = Astro.url.searchParams.get("error");
-const ok = Astro.url.searchParams.get("ok");
-const okMessage =
-  ok === "created"
-    ? "Plugin added."
-    : ok === "updated"
-      ? "Changes saved."
-      : ok === "deleted"
-        ? "Plugin removed."
-        : null;
 ---
 
 <AppShell title="Plugins catalog">
@@ -29,12 +17,6 @@ const okMessage =
       </p>
     </div>
 
-    {okMessage && <Banner variant="success" message={okMessage} />}
-
-    <PluginCatalog
-      entries={entries.map((e) => ({ id: e.id, name: e.name, notes: e.notes }))}
-      serverError={error}
-      client:load
-    />
+    <PluginCatalog entries={entries.map((e) => ({ id: e.id, name: e.name, notes: e.notes }))} client:load />
   </div>
 </AppShell>

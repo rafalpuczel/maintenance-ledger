@@ -2,25 +2,25 @@ import type { APIRoute } from "astro";
 import { createSupabaseClient } from "@/lib/supabase";
 import { updateProject, SlugTakenError } from "@/lib/projects/queries";
 import { parseProjectForm } from "@/lib/projects/form";
+import { actionOk, actionError } from "@/lib/ui/response";
 
 export const POST: APIRoute = async (context) => {
   const id = context.params.id ?? "";
   const form = await context.request.formData();
-  // The detail page sends its current slug so error-redirects land back on the
-  // right detail URL even though the submitted slug may differ.
-  const returnSlug = (form.get("_return_slug") as string | null) ?? "";
-  const detailUrl = `/projects/${returnSlug}`;
 
   const parsed = parseProjectForm(form);
   if (!parsed.ok) {
-    return context.redirect(`${detailUrl}?error=${encodeURIComponent(parsed.message)}`);
+    return actionError({ error: parsed.message, field: parsed.field });
   }
 
   try {
     const project = await updateProject(createSupabaseClient(), id, parsed.data);
-    return context.redirect(`/projects/${project.slug}?ok=updated`);
+    // The slug may have changed; the client navigates to the canonical detail URL.
+    return actionOk({ message: "Changes saved.", data: project, redirectTo: `/projects/${project.slug}` });
   } catch (err) {
-    const message = err instanceof SlugTakenError ? err.message : "Could not update the project";
-    return context.redirect(`${detailUrl}?error=${encodeURIComponent(message)}`);
+    if (err instanceof SlugTakenError) {
+      return actionError({ error: err.message, field: "slug" });
+    }
+    return actionError({ error: "Could not update the project" }, 500);
   }
 };

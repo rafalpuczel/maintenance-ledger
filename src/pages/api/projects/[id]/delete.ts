@@ -1,17 +1,15 @@
 import type { APIRoute } from "astro";
 import { createSupabaseClient } from "@/lib/supabase";
 import { deleteProject } from "@/lib/projects/queries";
+import { actionOk, actionError } from "@/lib/ui/response";
 
 export const POST: APIRoute = async (context) => {
   const id = context.params.id ?? "";
-  const form = await context.request.formData();
-  const returnSlug = (form.get("_return_slug") as string | null) ?? "";
 
   try {
     await deleteProject(createSupabaseClient(), id);
-    return context.redirect("/projects?ok=deleted");
+    return actionOk({ message: "Project deleted.", data: { id }, redirectTo: "/projects" });
   } catch {
-    const back = returnSlug ? `/projects/${returnSlug}` : "/projects";
-    return context.redirect(`${back}?error=${encodeURIComponent("Could not delete the project")}`);
+    return actionError({ error: "Could not delete the project" }, 500);
   }
 };

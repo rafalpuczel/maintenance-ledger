@@ -1,16 +1,11 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import Banner from "@/components/ui/Banner.astro";
 import EmptyState from "@/components/ui/EmptyState.astro";
 import { FolderPlus } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { listProjects } from "@/lib/projects/queries";
 
 const projects = await listProjects(createSupabaseClient());
-
-const error = Astro.url.searchParams.get("error");
-const ok = Astro.url.searchParams.get("ok");
-const okMessage = ok === "deleted" ? "Project deleted." : null;
 ---
 
 <AppShell title="Projects">
@@ -24,9 +19,6 @@ const okMessage = ok === "deleted" ? "Project deleted." : null;
       New project
     </a>
   </div>
-
-  {error && <Banner variant="error" message={error} />}
-  {okMessage && <Banner variant="success" message={okMessage} />}
 
   {
     projects.length === 0 ? (

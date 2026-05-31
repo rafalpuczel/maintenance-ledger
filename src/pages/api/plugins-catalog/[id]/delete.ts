@@ -1,14 +1,15 @@
 import type { APIRoute } from "astro";
 import { createSupabaseClient } from "@/lib/supabase";
 import { deleteCatalogEntry } from "@/lib/plugins-catalog/queries";
+import { actionOk, actionError } from "@/lib/ui/response";
 
 export const POST: APIRoute = async (context) => {
   const id = context.params.id ?? "";
 
   try {
     await deleteCatalogEntry(createSupabaseClient(), id);
-    return context.redirect("/plugins-catalog?ok=deleted");
+    return actionOk({ message: "Plugin removed.", data: { id } });
   } catch {
-    return context.redirect(`/plugins-catalog?error=${encodeURIComponent("Could not delete the plugin")}`);
+    return actionError({ error: "Could not delete the plugin" }, 500);
   }
 };

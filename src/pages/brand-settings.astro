@@ -1,15 +1,10 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import Banner from "@/components/ui/Banner.astro";
 import BrandSettingsForm from "@/components/brand-settings/BrandSettingsForm";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getBrand } from "@/lib/brand-settings/queries";
 
 const brand = await getBrand(createSupabaseClient());
-
-const error = Astro.url.searchParams.get("error");
-const ok = Astro.url.searchParams.get("ok");
-const okMessage = ok === "saved" ? "Brand settings saved." : null;
 
 const updatedAt = brand ? new Date(brand.updated_at).toLocaleString() : null;
 ---
@@ -21,12 +16,9 @@ const updatedAt = brand ? new Date(brand.updated_at).toLocaleString() : null;
       <p class="text-muted-foreground mt-1 text-sm">The agency logo and colors used on every report PDF.</p>
     </div>
 
-    {okMessage && <Banner variant="success" message={okMessage} />}
-
     <div class="border-border bg-card rounded-xl border p-8 shadow-sm">
       <BrandSettingsForm
         action="/api/brand-settings"
-        serverError={error}
         updatedAt={updatedAt}
         initial={brand
           ? {

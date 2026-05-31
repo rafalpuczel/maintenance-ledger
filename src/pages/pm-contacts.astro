@@ -1,22 +1,10 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import Banner from "@/components/ui/Banner.astro";
 import PmContacts from "@/components/pm-contacts/PmContacts";
 import { createSupabaseClient } from "@/lib/supabase";
 import { listContacts } from "@/lib/pm-contacts/queries";
 
 const entries = await listContacts(createSupabaseClient());
-
-const error = Astro.url.searchParams.get("error");
-const ok = Astro.url.searchParams.get("ok");
-const okMessage =
-  ok === "created"
-    ? "Contact added."
-    : ok === "updated"
-      ? "Changes saved."
-      : ok === "deleted"
-        ? "Contact removed."
-        : null;
 ---
 
 <AppShell title="PM contacts">
@@ -29,12 +17,6 @@ const okMessage =
       </p>
     </div>
 
-    {okMessage && <Banner variant="success" message={okMessage} />}
-
-    <PmContacts
-      entries={entries.map((e) => ({ id: e.id, name: e.name, email: e.email }))}
-      serverError={error}
-      client:load
-    />
+    <PmContacts entries={entries.map((e) => ({ id: e.id, name: e.name, email: e.email }))} client:load />
   </div>
 </AppShell>

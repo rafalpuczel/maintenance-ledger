@@ -3,20 +3,19 @@ import { createSupabaseClient } from "@/lib/supabase";
 import {
   addRecurringPluginById,
   addRecurringPluginByName,
+  listRecurringPlugins,
   AlreadyOnListError,
 } from "@/lib/project-recurring-plugins/queries";
 import { parseAddRecurringForm } from "@/lib/project-recurring-plugins/form";
+import { actionOk, actionError } from "@/lib/ui/response";
 
 export const POST: APIRoute = async (context) => {
   const form = await context.request.formData();
   const projectId = (form.get("project_id") as string | null) ?? "";
-  // The project page sends its slug so every redirect lands back on the detail URL.
-  const slug = (form.get("slug") as string | null) ?? "";
-  const detailUrl = `/projects/${slug}`;
 
   const parsed = parseAddRecurringForm(form);
   if (!parsed.ok) {
-    return context.redirect(`${detailUrl}?error=${encodeURIComponent(parsed.message)}`);
+    return actionError({ error: parsed.message });
   }
 
   try {
@@ -26,9 +25,14 @@ export const POST: APIRoute = async (context) => {
     } else {
       await addRecurringPluginByName(client, projectId, parsed.name);
     }
-    return context.redirect(`${detailUrl}?ok=plugin-added`);
+    // The add helpers return void; re-list so the client gets the full, sorted
+    // recurring list (with the joined plugin name) to render in place.
+    const list = await listRecurringPlugins(client, projectId);
+    return actionOk({ message: "Plugin added to the recurring list.", data: list });
   } catch (err) {
-    const message = err instanceof AlreadyOnListError ? err.message : "Could not add the plugin";
-    return context.redirect(`${detailUrl}?error=${encodeURIComponent(message)}`);
+    if (err instanceof AlreadyOnListError) {
+      return actionError({ error: err.message });
+    }
+    return actionError({ error: "Could not add the plugin" }, 500);
   }
 };

@@ -1,6 +1,5 @@
 ---
 import AppShell from "@/layouts/AppShell.astro";
-import Banner from "@/components/ui/Banner.astro";
 import DeleteReportButton from "@/components/reports/DeleteReportButton";
 import ReportForm from "@/components/reports/ReportForm";
 import SendToClientButton from "@/components/reports/SendToClientButton";
@@ -26,24 +25,11 @@ const [project, report, catalog, contacts, sends] = await Promise.all([
 ]);
 
 if (!project) {
-  return Astro.redirect("/projects?error=Project%20not%20found");
+  return Astro.redirect("/projects");
 }
 if (!report) {
-  return Astro.redirect(`/projects/${slug}?error=Report%20not%20found`);
+  return Astro.redirect(`/projects/${slug}`);
 }
-
-const error = Astro.url.searchParams.get("error");
-const ok = Astro.url.searchParams.get("ok");
-const okMessage =
-  ok === "created"
-    ? "Report created."
-    : ok === "saved"
-      ? "Changes saved."
-      : ok === "sent-pm"
-        ? "Report sent to the PM."
-        : ok === "sent-client"
-          ? "Report sent to the client."
-          : null;
 
 // Catalog names feed the plugin-row datalist combobox in the form.
 const catalogNames = catalog.map((c) => c.name);
@@ -124,14 +110,11 @@ const catalogNames = catalog.map((c) => c.name);
       </div>
     </div>
 
-    {okMessage && <Banner variant="success" message={okMessage} />}
-
     <ReportForm
       action={`/api/reports/${report.id}`}
       slug={project.slug}
       month={report.month}
       catalogNames={catalogNames}
-      serverError={error}
       initial={{
         wp_core_version: report.wp_core_version,
         wp_core_updated: report.wp_core_updated,
