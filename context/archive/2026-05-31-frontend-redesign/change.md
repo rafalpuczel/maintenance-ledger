@@ -1,10 +1,10 @@
 ---
 change_id: frontend-redesign
 title: Frontend redesign — light theme, responsive/a11y, per-recipient email, browser PDF
-status: implemented
+status: archived
 created: 2026-05-31
 updated: 2026-05-31
-archived_at: null
+archived_at: 2026-05-31T12:09:37Z
 ---
 
 ## Notes

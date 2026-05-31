@@ -3,7 +3,7 @@ project: "Maintenance Ledger"
 version: 2
 status: active
 created: 2026-05-25
-updated: 2026-05-30
+updated: 2026-05-31
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -45,9 +45,9 @@ Maintenance reports for client WordPress retainers are produced today through a 
 | S-07  | wp-cli-bulk-paste          | bulk-paste a WP-CLI table into the plugins/themes repeaters     | S-06                   | FR-015, US-01                                  | done     |
 | S-08  | branded-pdf-on-save        | get a branded PDF on every save + a visible download link       | S-06, F-02, S-02       | FR-017, FR-018, US-01                          | done     |
 | S-09  | report-email-send          | send the branded PDF to the PM and the client (north star)      | S-08, S-04             | FR-019, FR-020, FR-021, US-01                  | done     |
-| S-10  | frontend-redesign          | use a redesigned, light-themed, responsive, accessible app with a shared header + real dashboard (post-MVP north star) | S-09 (shipped MVP) | v2 US-01, US-02, US-04 | ready    |
-| S-11  | async-ux                   | act without full-page reloads — async submits, optimistic UI, spinners, toasts, confirm dialogs | S-10           | v2 US-03                                       | proposed |
-| S-12  | pdf-inline-view            | open the report PDF in the browser (new tab) instead of forcing a download | S-09 (shipped MVP) | v2 US-05                            | ready    |
+| S-10  | frontend-redesign          | use a redesigned, light-themed, responsive, accessible app with a shared header + real dashboard (post-MVP north star) | S-09 (shipped MVP) | v2 US-01, US-02, US-04 | done     |
+| S-11  | async-ux                   | act without full-page reloads — async submits, optimistic UI, spinners, toasts, confirm dialogs | S-10           | v2 US-03                                       | done     |
+| S-12  | pdf-inline-view            | open the report PDF in the browser (new tab) instead of forcing a download | S-09 (shipped MVP) | v2 US-05                            | done     |
 | S-13  | email-templates            | edit separate PM + client email subject/body with placeholders | S-09 (shipped MVP)     | v2 US-06                                       | ready    |
 
 ## Streams
@@ -228,7 +228,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
   - Whether to split into multiple changes (shell+dashboard / theme+forms / responsive+a11y) — Owner: user/planner. Block: no (resolved in `/10x-plan`; doesn't gate starting).
   - Exact light-theme token palette — Owner: user (via `frontend-design`). Block: no.
 - **Risk:** The largest surface in either round — touches `Layout.astro`, the unused `Topbar.astro`, every page under `src/pages/`, the `global.css` design tokens, and most components. The re-theme risks regressing the deliberate no-leak / empty-section-hiding behaviors only at the presentation layer (logic is untouched), so the guardrail is visual-only changes to report/PDF-adjacent UI. Introduce reusable primitives here (header/nav, Tooltip, Dialog, Toast, empty-state, skeleton) so S-11 composes with them instead of duplicating. Sequenced first in the round because S-11 depends on it and because the redesign is the round's validation milestone.
-- **Status:** ready
+- **Status:** done
 
 ### S-11: Asynchronous actions + UX feedback
 
@@ -241,19 +241,19 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Unknowns:**
   - Optimistic-rollback scope — which mutations are safe to apply optimistically vs. await-confirm (e.g. a send should not be optimistic) — Owner: user/planner. Block: no (a sane default: optimistic for list/row CRUD, await-confirm for sends; pinned in `/10x-plan`).
 - **Risk:** The async conversion must degrade safely — a failed `fetch` surfaces an error toast and must never leave the UI showing a false success; the send path keeps the US-01 rule (a failed send writes no send record). The footgun is optimistic UI drifting out of sync with server truth; mitigated by rolling back on any non-2xx and by excluding sends from optimism. Depends entirely on S-10 landing its primitives first.
-- **Status:** proposed
+- **Status:** done
 
 ### S-12: Open the PDF in the browser
 
-- **Outcome:** user clicks to view a report's PDF and it opens inline in a new browser tab (the report page stays put behind it) instead of forcing a file download; an explicit save-to-file path remains available; the email-attachment behavior is unchanged.
+- **Outcome:** user clicks "View PDF" and the report's PDF opens inline in a new browser tab (the report page stays put behind it) instead of forcing a file download; saving is left to the browser viewer's built-in control (no separate download link — scope narrowed during planning); the email-attachment behavior is unchanged.
 - **Change ID:** pdf-inline-view
 - **PRD refs:** v2 US-05 (view PDF in browser, keep download)
 - **Prerequisites:** S-09 (the shipped MVP — the PDF route and report page already exist)
 - **Parallel with:** S-10, S-11, S-13 (fully independent — touches only the PDF response and the report-page link)
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** The smallest slice in either round — flips `content-disposition` from `attachment` to `inline` on `GET /api/reports/[id]/pdf` (or serves an inline variant) and adds `target="_blank"` to the report-page link, keeping a separate explicit-download affordance. The render itself is untouched, so the 5 s p95 budget and empty-section hiding are unaffected. A genuine quick win; ship any time.
-- **Status:** ready
+- **Risk:** The smallest slice in either round — flips `content-disposition` from `attachment` to bare `inline` on `GET /api/reports/[id]/pdf` and adds `target="_blank"` to the report-page link. The render itself is untouched, so the 5 s p95 budget and empty-section hiding are unaffected. A genuine quick win; ship any time.
+- **Status:** done (implemented 2026-05-30, `76a32e0`; archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`). The "keep an explicit download path" part of the outcome was consciously dropped — the page offers only "View PDF" and relies on the viewer's save control.
 
 ### S-13: Editable email configuration (separate PM + client templates)
 
@@ -283,9 +283,9 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | S-07       | wp-cli-bulk-paste          | WP-CLI table bulk-paste parser                                | no                    | Needs S-06. |
 | S-08       | branded-pdf-on-save        | Branded PDF on save + download link                           | no                    | Needs S-06, F-02, S-02. |
 | S-09       | report-email-send          | Send report PDF to PM + client (re-send guard + history)      | no                    | Needs S-08, S-04 + Resend setup. North star. |
-| S-10       | frontend-redesign          | Frontend redesign + shared shell + dashboard + responsive + WCAG-AA | yes             | Post-MVP north star. May split in `/10x-plan`. Use `frontend-design`. |
-| S-11       | async-ux                   | Async actions + optimistic UI + spinners + toasts + confirms  | no                    | Needs S-10's components. |
-| S-12       | pdf-inline-view            | Open report PDF in browser (new tab) + keep download          | yes                   | Quick win; independent. Run `/10x-plan pdf-inline-view`. |
+| S-10       | frontend-redesign          | Frontend redesign + shared shell + dashboard + responsive + WCAG-AA | done            | Archived 2026-05-31 → `context/archive/2026-05-31-frontend-redesign/`. |
+| S-11       | async-ux                   | Async actions + spinners + toasts + confirms (no optimistic UI — see Done note) | done    | Archived 2026-05-31 → `context/archive/2026-05-31-async-ux/`. |
+| S-12       | pdf-inline-view            | Open report PDF in browser (new tab) + keep download          | done                  | Implemented 2026-05-30 (`76a32e0`); archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`. |
 | S-13       | email-templates            | Editable per-recipient (PM/client) email subject/body + placeholders | yes            | Independent; adds one settings table (S-01 data pattern). |
 
 ## Open Roadmap Questions
@@ -332,3 +332,6 @@ Lifted from PRD `## Non-Goals` — explicitly out of MVP scope (post-MVP unless 
 - **S-07: user can bulk-paste a WP-CLI table into the plugins/themes repeaters (single-row fallback on parse failure)** — Archived 2026-05-30 → `context/archive/2026-05-30-wp-cli-bulk-paste/`. Lesson: —.
 - **S-08: user gets a branded PDF on every save (real brand, empty sections hidden) + a visible download link** — Archived 2026-05-30 → `context/archive/2026-05-30-branded-pdf-on-save/`. Lesson: —.
 - **S-09: user can send the branded PDF to the PM and the client (re-send guard + inline send history) — the north star, verified in prod** — Archived 2026-05-30 → `context/archive/2026-05-30-report-email-send/`. Lesson: Resend attachments take chunked standard-base64 (not base64url) of the PDF `Uint8Array` on workerd; record the send only after a confirmed dispatch (US-01: a failed send writes no record).
+- **S-10: user works in a redesigned app — shared header/nav on every authenticated page, a real work dashboard at home, a light professional B2B theme, wider content, nicer forms, button tooltips, polished empty states + loading skeletons, full responsive layout, and a WCAG-AA accessibility pass** — Archived 2026-05-31 → `context/archive/2026-05-31-frontend-redesign/`. Lesson: —.
+- **S-11: user performs every create/edit/delete/send without a full-page white-flash reload — async in-place submits, in-progress spinners, toasts replacing the `?ok=`/`?error=` banners, and a consistent destructive-confirm dialog; a UX-recommendations doc shipped with it** — Archived 2026-05-31 → `context/archive/2026-05-31-async-ux/`. Lesson: shipped WITHOUT optimistic UI/rollback — a deliberate, user-approved deviation from US-03's "reflects immediately/rolls back" wording (spinner-then-update instead, no false-success risk); routes went JSON-only; full-SPA cross-route nav uses Astro `<ClientRouter/>` + `resolve.dedupe(["react","react-dom"])` to avoid duplicate-React "Invalid hook call"; sonner needs its `dist/styles.css` imported.
+- **S-12: user clicks "View PDF" and the report's PDF opens inline in a new browser tab instead of forcing a file download (save left to the viewer's control; email attachment unchanged)** — Archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`. Lesson: —.
