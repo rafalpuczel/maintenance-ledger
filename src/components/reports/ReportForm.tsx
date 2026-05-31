@@ -33,11 +33,11 @@ interface Props {
 }
 
 const textInput =
-  "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none";
+  "w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+    <section className="border-border bg-card rounded-xl border p-5 shadow-sm">
       <h2 className="mb-3 text-base font-semibold">{title}</h2>
       {children}
     </section>
@@ -56,7 +56,7 @@ function Check({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-blue-100/80">
+    <label className="text-foreground flex items-center gap-2 text-sm">
       <input
         type="checkbox"
         name={name}
@@ -64,7 +64,7 @@ function Check({
         onChange={(e) => {
           onChange(e.target.checked);
         }}
-        className="size-4 accent-purple-500"
+        className="accent-primary size-4"
       />
       {label}
     </label>
@@ -115,8 +115,8 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
       <input type="hidden" name="slug" value={slug} />
 
       <Section title="Month">
-        <p className="text-sm text-blue-100/70">{month}</p>
-        <p className="mt-1 text-xs text-blue-100/40">Set automatically from the report&apos;s creation date.</p>
+        <p className="text-foreground text-sm">{month}</p>
+        <p className="text-muted-foreground mt-1 text-xs">Set automatically from the report&apos;s creation date.</p>
       </Section>
 
       <Section title="WordPress core">
@@ -128,6 +128,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
               setWpCoreVersion(e.target.value);
             }}
             placeholder="Core version (e.g. 6.5.2)"
+            aria-label="WordPress core version"
             className={textInput}
           />
           <Check
@@ -150,6 +151,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
                 setPhpFrom(e.target.value);
               }}
               placeholder="from (e.g. 8.1)"
+              aria-label="PHP from version"
               className={textInput}
             />
             <input
@@ -159,6 +161,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
                 setPhpTo(e.target.value);
               }}
               placeholder="to (e.g. 8.2)"
+              aria-label="PHP to version"
               className={textInput}
             />
           </div>
@@ -182,6 +185,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
               setIntegrityStatus(e.target.value);
             }}
             placeholder="Status (e.g. Passed / Issues found)"
+            aria-label="Integrity status"
             className={textInput}
           />
           <textarea
@@ -191,6 +195,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
               setIntegrityIssues(e.target.value);
             }}
             placeholder="Issues found (leave empty if none)"
+            aria-label="Integrity issues"
             rows={3}
             className={textInput}
           />
@@ -205,6 +210,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
             setFixesApplied(e.target.value);
           }}
           placeholder="What was fixed this cycle"
+          aria-label="Fixes applied"
           rows={3}
           className={textInput}
         />
@@ -222,6 +228,7 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
             setNotesToClient(e.target.value);
           }}
           placeholder="Client-facing notes — the only field shown to the client"
+          aria-label="Notes to client"
           rows={4}
           className={textInput}
         />
