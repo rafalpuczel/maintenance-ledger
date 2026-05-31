@@ -2,9 +2,8 @@
 import AppShell from "@/layouts/AppShell.astro";
 import DeleteReportButton from "@/components/reports/DeleteReportButton";
 import ReportForm from "@/components/reports/ReportForm";
-import SendToClientButton from "@/components/reports/SendToClientButton";
-import SendToPmButton from "@/components/reports/SendToPmButton";
-import { ArrowLeft, FileText, Users, Mail } from "lucide-react";
+import ReportDelivery from "@/components/reports/ReportDelivery";
+import { ArrowLeft } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -50,65 +49,19 @@ const catalogNames = catalog.map((c) => c.name);
         <h1 class="text-2xl font-bold tracking-tight">Report — {report.month}</h1>
         <p class="text-muted-foreground text-sm">{project.name}</p>
       </div>
-      <div class="flex flex-wrap items-center justify-end gap-2">
-        <a
-          href={`/api/reports/${report.id}/pdf`}
-          target="_blank"
-          rel="noopener"
-          class="border-input bg-card hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium shadow-xs transition-colors"
-        >
-          <FileText className="size-4" />
-          View PDF
-        </a>
-        <SendToPmButton
-          reportId={report.id}
-          slug={project.slug}
-          contacts={contacts.map((c) => ({ id: c.id, name: c.name, email: c.email }))}
-          lastSend={sends.pm}
-          client:load
-        />
-        <SendToClientButton
-          reportId={report.id}
-          slug={project.slug}
-          clientEmail={project.contact_email}
-          lastSend={sends.client}
-          client:load
-        />
-        <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
-      </div>
+      <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
     </div>
 
-    {/* Delivery status — send history for both recipients, out of the button row */}
-    <div class="border-border bg-border mb-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border sm:grid-cols-2">
-      <div class="bg-card flex items-center gap-2 px-4 py-2.5 text-sm">
-        <Users className="text-muted-foreground size-4 shrink-0" />
-        <span class="text-muted-foreground">PM:</span>
-        {
-          sends.pm ? (
-            <span class="text-foreground truncate">
-              {sends.pm.email}
-              <span class="text-muted-foreground"> · {new Date(sends.pm.sentAt).toLocaleDateString()}</span>
-            </span>
-          ) : (
-            <span class="text-muted-foreground">Not sent yet</span>
-          )
-        }
-      </div>
-      <div class="bg-card flex items-center gap-2 px-4 py-2.5 text-sm">
-        <Mail className="text-muted-foreground size-4 shrink-0" />
-        <span class="text-muted-foreground">Client:</span>
-        {
-          sends.client ? (
-            <span class="text-foreground truncate">
-              {sends.client.email}
-              <span class="text-muted-foreground"> · {new Date(sends.client.sentAt).toLocaleDateString()}</span>
-            </span>
-          ) : (
-            <span class="text-muted-foreground">Not sent yet</span>
-          )
-        }
-      </div>
-    </div>
+    <ReportDelivery
+      reportId={report.id}
+      slug={project.slug}
+      pdfHref={`/api/reports/${report.id}/pdf`}
+      contacts={contacts.map((c) => ({ id: c.id, name: c.name, email: c.email }))}
+      clientEmail={project.contact_email}
+      pmLastSend={sends.pm}
+      clientLastSend={sends.client}
+      client:load
+    />
 
     <ReportForm
       action={`/api/reports/${report.id}`}

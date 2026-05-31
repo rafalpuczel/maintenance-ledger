@@ -456,10 +456,10 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [x] 4.1 Type checking passes: `npx astro check`
-- [x] 4.2 Linting passes (exit code): `npm run lint`
-- [x] 4.3 Unit tests pass: `npm test`
-- [x] 4.4 Build succeeds: `npm run build`
+- [x] 4.1 Type checking passes: `npx astro check` — e36a1ee
+- [x] 4.2 Linting passes (exit code): `npm run lint` — e36a1ee
+- [x] 4.3 Unit tests pass: `npm test` — e36a1ee
+- [x] 4.4 Build succeeds: `npm run build` — e36a1ee
 
 #### Manual
 
@@ -474,10 +474,10 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [ ] 5.1 Type checking passes: `npx astro check`
-- [ ] 5.2 Linting passes (exit code): `npm run lint`
-- [ ] 5.3 Unit tests pass: `npm test`
-- [ ] 5.4 Build succeeds: `npm run build`
+- [x] 5.1 Type checking passes: `npx astro check`
+- [x] 5.2 Linting passes (exit code): `npm run lint`
+- [x] 5.3 Unit tests pass: `npm test`
+- [x] 5.4 Build succeeds: `npm run build`
 
 #### Manual
 

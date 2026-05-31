@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { SubmitButton } from "@/components/auth/SubmitButton";
+import { Button } from "@/components/ui/button";
 import { ServerError } from "@/components/auth/ServerError";
 import RowsRepeater, { type VersionRow } from "@/components/reports/RowsRepeater";
 import LicensesRepeater from "@/components/reports/LicensesRepeater";
 import type { LicenseRow, PluginRow, ThemeRow } from "@/lib/reports/schema";
 import { reportInputSchema } from "@/lib/reports/schema";
+import { useSubmit } from "@/lib/ui/useSubmit";
+import { toastSuccess, toastError, toastWarning } from "@/lib/ui/toast";
 
 export interface ReportFormInitial {
   wp_core_version: string | null;
@@ -24,12 +26,11 @@ export interface ReportFormInitial {
 
 interface Props {
   action: string;
-  // project slug, posted as a hidden field so the server redirects back here
+  // project slug, posted as a hidden field (carried in the report payload)
   slug: string;
   month: string;
   initial: ReportFormInitial;
   catalogNames: string[];
-  serverError?: string | null;
 }
 
 const textInput =
@@ -71,7 +72,7 @@ function Check({
   );
 }
 
-export default function ReportForm({ action, slug, month, initial, catalogNames, serverError }: Props) {
+export default function ReportForm({ action, slug, month, initial, catalogNames }: Props) {
   const [wpCoreVersion, setWpCoreVersion] = useState(initial.wp_core_version ?? "");
   const [wpCoreUpdated, setWpCoreUpdated] = useState(initial.wp_core_updated);
   const [phpUpdated, setPhpUpdated] = useState(initial.php_updated);
@@ -85,8 +86,10 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
   const [themes, setThemes] = useState<VersionRow[]>(initial.themes);
   const [licenses, setLicenses] = useState<LicenseRow[]>(initial.licenses);
   const [clientError, setClientError] = useState<string | undefined>();
+  const { submit, pending } = useSubmit();
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
     // Light client validation mirroring the server parser's schema. Empty
     // version/notes fields are fine; a repeater row with a blank name is the
     // common mistake worth catching before the round-trip.
@@ -105,13 +108,31 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
       licenses,
     });
     if (!result.success) {
-      e.preventDefault();
       setClientError(result.error.issues[0]?.message ?? "Please check the form");
+      return;
+    }
+    setClientError(undefined);
+
+    // Serialize straight from the form element so the repeater fields
+    // (plugins[i].name, checkboxes, etc.) match the server parser's contract
+    // exactly — no manual re-mapping.
+    const fd = new FormData(e.currentTarget);
+    const res = await submit(action, fd);
+    if (res.ok) {
+      // Save persisted. The PDF-render-failed case comes back as a warning
+      // (still saved), everything else as a plain success.
+      if (res.warning) toastWarning(res.message);
+      else toastSuccess(res.message);
+    } else {
+      // A server-side validation error has no field mapping here (the report
+      // form is one big payload); surface it in the form's error area.
+      setClientError(res.error);
+      toastError(res.error);
     }
   }
 
   return (
-    <form method="POST" action={action} className="space-y-5" onSubmit={handleSubmit} noValidate>
+    <form className="space-y-5" onSubmit={(e) => void handleSubmit(e)} noValidate>
       <input type="hidden" name="slug" value={slug} />
 
       <Section title="Month">
@@ -234,11 +255,21 @@ export default function ReportForm({ action, slug, month, initial, catalogNames,
         />
       </Section>
 
-      <ServerError message={clientError ?? serverError} />
+      <ServerError message={clientError} />
 
-      <SubmitButton pendingText="Saving..." icon={<Save className="size-4" />}>
-        Save report
-      </SubmitButton>
+      <Button type="submit" disabled={pending} className="w-full">
+        {pending ? (
+          <span className="flex items-center gap-2">
+            <span className="border-primary-foreground/30 border-t-primary-foreground size-4 animate-spin rounded-full border-2" />
+            Saving...
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <Save className="size-4" />
+            Save report
+          </span>
+        )}
+      </Button>
     </form>
   );
 }
