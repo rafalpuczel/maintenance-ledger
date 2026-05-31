@@ -6,10 +6,14 @@ interface SubmitButtonProps {
   pendingText: string;
   icon: ReactNode;
   children: ReactNode;
+  // Fetch-based islands drive their own pending state via useSubmit(); pass it
+  // here. Native <form action> callers omit it and fall back to useFormStatus.
+  pending?: boolean;
 }
 
-export function SubmitButton({ pendingText, icon, children }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+export function SubmitButton({ pendingText, icon, children, pending: pendingProp }: SubmitButtonProps) {
+  const { pending: formPending } = useFormStatus();
+  const pending = pendingProp ?? formPending;
 
   return (
     <Button type="submit" disabled={pending} className="w-full">

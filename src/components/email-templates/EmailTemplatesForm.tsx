@@ -142,7 +142,7 @@ export default function EmailTemplatesForm({ action, initial, updatedAt, agencyN
         {pending ? "Saving email templates" : ""}
       </div>
 
-      <SubmitButton pendingText="Saving..." icon={<Save className="size-4" />}>
+      <SubmitButton pending={pending} pendingText="Saving..." icon={<Save className="size-4" />}>
         Save templates
       </SubmitButton>
 
