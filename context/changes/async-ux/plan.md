@@ -474,10 +474,10 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [x] 5.1 Type checking passes: `npx astro check`
-- [x] 5.2 Linting passes (exit code): `npm run lint`
-- [x] 5.3 Unit tests pass: `npm test`
-- [x] 5.4 Build succeeds: `npm run build`
+- [x] 5.1 Type checking passes: `npx astro check` — 2ad6e38
+- [x] 5.2 Linting passes (exit code): `npm run lint` — 2ad6e38
+- [x] 5.3 Unit tests pass: `npm test` — 2ad6e38
+- [x] 5.4 Build succeeds: `npm run build` — 2ad6e38
 
 #### Manual
 
@@ -492,7 +492,7 @@ No data migration — this slice is additive in code only (one new dependency, n
 
 #### Automated
 
-- [ ] 6.1 File exists: `context/changes/async-ux/ux-recommendations.md`
+- [x] 6.1 File exists: `context/changes/async-ux/ux-recommendations.md`
 
 #### Manual
 
