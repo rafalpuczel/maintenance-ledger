@@ -348,19 +348,19 @@ If neither sanitizer bundles on workerd, the documented fallback is a plain-text
 
 #### Automated
 
-- [x] 1.1 Spike: `npm run build` succeeds with the chosen sanitizer imported in a Worker context (exit 0)
-- [x] 1.2 Migration applies cleanly: `npx supabase migration up --local`
-- [x] 1.3 DB types include the new table and the file is clean: `npx astro check` (exit 0)
-- [x] 1.4 Unit tests pass: `npm test`
-- [x] 1.5 Type checking passes: `npx astro check`
-- [x] 1.6 Linting passes (judge by exit code): `npm run lint`
+- [x] 1.1 Spike: `npm run build` succeeds with the chosen sanitizer imported in a Worker context (exit 0) — 4c2121f
+- [x] 1.2 Migration applies cleanly: `npx supabase migration up --local` — 4c2121f
+- [x] 1.3 DB types include the new table and the file is clean: `npx astro check` (exit 0) — 4c2121f
+- [x] 1.4 Unit tests pass: `npm test` — 4c2121f
+- [x] 1.5 Type checking passes: `npx astro check` — 4c2121f
+- [x] 1.6 Linting passes (judge by exit code): `npm run lint` — 4c2121f
 
 #### Manual
 
 - [ ] 1.7 Chosen sanitizer runs without a runtime error under `wrangler dev`/preview on a sample input
 - [ ] 1.8 `email_templates` row absent by default; manual upsert creates exactly one row (no duplicates possible)
 - [ ] 1.9 Rendering a hand-built context produces expected sanitized HTML and a clean subject
-- [x] 1.10 Spike verdict recorded in `spike-sanitizer.md` (chosen editor + sanitizer + any shim)
+- [x] 1.10 Spike verdict recorded in `spike-sanitizer.md` (chosen editor + sanitizer + any shim) — 4c2121f
 
 ### Phase 2: Settings page + WYSIWYG form island
 
