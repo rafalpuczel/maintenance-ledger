@@ -1,5 +1,8 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import AppShell from "@/layouts/AppShell.astro";
+import Banner from "@/components/ui/Banner.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import { FolderPlus } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { listProjects } from "@/lib/projects/queries";
 
@@ -10,61 +13,45 @@ const ok = Astro.url.searchParams.get("ok");
 const okMessage = ok === "deleted" ? "Project deleted." : null;
 ---
 
-<Layout title="Projects">
-  <div class="bg-cosmic min-h-screen p-6 text-white">
-    <div class="mx-auto max-w-3xl">
-      <div class="mb-6 flex items-center justify-between">
-        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-          Projects
-        </h1>
-        <a
-          href="/projects/new"
-          class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-purple-500"
-        >
-          New project
-        </a>
-      </div>
-
-      {
-        error && (
-          <p class="mb-4 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300">{error}</p>
-        )
-      }
-      {
-        okMessage && (
-          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
-            {okMessage}
-          </p>
-        )
-      }
-
-      {
-        projects.length === 0 ? (
-          <div class="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
-            <p class="mb-3">No projects yet.</p>
-            <a href="/projects/new" class="text-purple-300 underline-offset-4 hover:underline">
-              Create your first project
-            </a>
-          </div>
-        ) : (
-          <ul class="space-y-2">
-            {projects.map((p) => (
-              <li>
-                <a
-                  href={`/projects/${p.slug}`}
-                  class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:bg-white/10"
-                >
-                  <span>
-                    <span class="font-medium">{p.name}</span>
-                    <span class="ml-2 text-sm text-blue-100/50">{p.slug}</span>
-                  </span>
-                  {p.contact_company && <span class="text-sm text-blue-100/60">{p.contact_company}</span>}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )
-      }
-    </div>
+<AppShell title="Projects">
+  <div class="mb-6 flex items-center justify-between gap-4">
+    <h1 class="text-2xl font-bold tracking-tight">Projects</h1>
+    <a
+      href="/projects/new"
+      class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition-colors"
+    >
+      <FolderPlus className="size-4" />
+      New project
+    </a>
   </div>
-</Layout>
+
+  {error && <Banner variant="error" message={error} />}
+  {okMessage && <Banner variant="success" message={okMessage} />}
+
+  {
+    projects.length === 0 ? (
+      <EmptyState title="No projects yet" description="Create your first project to start authoring reports.">
+        <a href="/projects/new" class="text-primary text-sm underline-offset-4 hover:underline">
+          Create your first project
+        </a>
+      </EmptyState>
+    ) : (
+      <ul class="space-y-2">
+        {projects.map((p) => (
+          <li>
+            <a
+              href={`/projects/${p.slug}`}
+              class="border-border bg-card hover:bg-accent flex items-center justify-between rounded-lg border px-4 py-3 shadow-xs transition-colors"
+            >
+              <span>
+                <span class="text-foreground font-medium">{p.name}</span>
+                <span class="text-muted-foreground ml-2 text-sm">{p.slug}</span>
+              </span>
+              {p.contact_company && <span class="text-muted-foreground text-sm">{p.contact_company}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</AppShell>

@@ -43,7 +43,7 @@ export default function RecurringPlugins({ projectId, slug, recurring, catalog, 
 function AddSubmit() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="bg-purple-600 text-white hover:bg-purple-500">
+    <Button type="submit" disabled={pending}>
       {pending ? (
         "Adding..."
       ) : (
@@ -82,7 +82,7 @@ function AddForm({
     <form
       method="POST"
       action={ADD_ACTION}
-      className="space-y-4 rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
+      className="border-border bg-card space-y-4 rounded-xl border p-6 shadow-sm"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -90,7 +90,7 @@ function AddForm({
       <input type="hidden" name="slug" value={slug} />
 
       <div>
-        <label htmlFor="plugin_id" className="mb-1 block text-sm text-blue-100/80">
+        <label htmlFor="plugin_id" className="text-foreground mb-1 block text-sm font-medium">
           Pick from catalog
         </label>
         <select
@@ -101,18 +101,18 @@ function AddForm({
             setPluginId(e.target.value);
             if (error) setError(undefined);
           }}
-          className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
+          className="border-input bg-card text-foreground focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-lg border px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none"
         >
           <option value="">— Select a plugin —</option>
           {addable.map((c) => (
-            <option key={c.id} value={c.id} className="bg-slate-800">
+            <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
         </select>
       </div>
 
-      <p className="text-center text-xs text-blue-100/40">or add one not in the catalog</p>
+      <p className="text-muted-foreground text-center text-xs">or add one not in the catalog</p>
 
       <FormField
         id="name"
@@ -125,7 +125,7 @@ function AddForm({
         placeholder="Akismet Anti-Spam"
         error={error}
         icon={<Package className="size-4" />}
-        hint={<p className="mt-1 text-xs text-blue-100/40">Adding a new name also saves it to the catalog.</p>}
+        hint={<p className="text-muted-foreground mt-1 text-xs">Adding a new name also saves it to the catalog.</p>}
       />
 
       <ServerError message={serverError} />
@@ -137,7 +137,7 @@ function AddForm({
 function RecurringList({ recurring, slug }: { recurring: RecurringEntry[]; slug: string }) {
   if (recurring.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
+      <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed p-10 text-center">
         <p>No recurring plugins yet.</p>
       </div>
     );
@@ -158,27 +158,27 @@ function ReadRow({ entry, slug }: { entry: RecurringEntry; slug: string }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+    <div className="border-border bg-card flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
       <div className="min-w-0">
         <p className="truncate font-medium">{entry.name}</p>
-        {entry.notes && <p className="truncate text-sm text-blue-100/50">{entry.notes}</p>}
+        {entry.notes && <p className="text-muted-foreground truncate text-sm">{entry.notes}</p>}
       </div>
       {confirming ? (
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-sm text-red-200">Remove?</span>
+          <span className="text-destructive text-sm">Remove?</span>
           <form method="POST" action={`/api/project-recurring-plugins/${entry.id}/delete`}>
             <input type="hidden" name="slug" value={slug} />
-            <Button type="submit" size="sm" className="bg-red-600 text-white hover:bg-red-500">
+            <Button type="submit" size="sm" variant="destructive">
               Confirm
             </Button>
           </form>
           <Button
             type="button"
             size="sm"
+            variant="secondary"
             onClick={() => {
               setConfirming(false);
             }}
-            className="border border-white/20 bg-white/10 hover:bg-white/20"
           >
             Cancel
           </Button>
@@ -187,10 +187,11 @@ function ReadRow({ entry, slug }: { entry: RecurringEntry; slug: string }) {
         <Button
           type="button"
           size="sm"
+          variant="outline"
+          className="text-destructive hover:text-destructive shrink-0"
           onClick={() => {
             setConfirming(true);
           }}
-          className="shrink-0 border border-red-500/40 bg-red-900/20 text-red-200 hover:bg-red-900/40"
         >
           <Trash2 className="size-3" />
           Remove

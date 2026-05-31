@@ -1,8 +1,11 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import AppShell from "@/layouts/AppShell.astro";
+import Banner from "@/components/ui/Banner.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
 import ProjectForm from "@/components/projects/ProjectForm";
 import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
 import RecurringPlugins from "@/components/project-recurring-plugins/RecurringPlugins";
+import { ArrowLeft, FilePlus2 } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -39,97 +42,94 @@ const okMessage =
             : null;
 ---
 
-<Layout title={project.name}>
-  <div class="bg-cosmic min-h-screen p-6 text-white">
-    <div class="mx-auto max-w-xl">
-      <div class="mb-6 flex items-center justify-between">
-        <a href="/projects" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Projects</a>
-        <DeleteProjectButton projectId={project.id} projectName={project.name} slug={project.slug} client:load />
+<AppShell title={project.name}>
+  <div class="mx-auto max-w-2xl">
+    <div class="mb-6 flex items-center justify-between gap-4">
+      <a
+        href="/projects"
+        class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline"
+      >
+        <ArrowLeft className="size-4" />
+        Projects
+      </a>
+      <DeleteProjectButton projectId={project.id} projectName={project.name} slug={project.slug} client:load />
+    </div>
+
+    {okMessage && <Banner variant="success" message={okMessage} />}
+
+    <div class="border-border bg-card rounded-xl border p-8 shadow-sm">
+      <h1 class="mb-6 text-2xl font-bold tracking-tight">{project.name}</h1>
+      <ProjectForm
+        action={`/api/projects/${project.id}`}
+        mode="edit"
+        serverError={error}
+        returnSlug={project.slug}
+        initial={{
+          name: project.name,
+          slug: project.slug,
+          url: project.url ?? "",
+          contact_company: project.contact_company ?? "",
+          contact_name: project.contact_name ?? "",
+          contact_email: project.contact_email ?? "",
+          internal_notes: project.internal_notes ?? "",
+        }}
+        client:load
+      />
+    </div>
+
+    <section class="mt-8">
+      <h2 class="mb-1 text-lg font-semibold">Recurring plugins</h2>
+      <p class="text-muted-foreground mb-4 text-sm">
+        These plugins pre-fill every new report for this project. Pick from the catalog or add a new name.
+      </p>
+      <RecurringPlugins
+        projectId={project.id}
+        slug={project.slug}
+        recurring={recurring}
+        catalog={catalog.map((c) => ({ id: c.id, name: c.name }))}
+        serverError={error}
+        client:load
+      />
+    </section>
+
+    <section class="mt-8">
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-semibold">Reports</h2>
+          <p class="text-muted-foreground text-sm">Maintenance reports for this project, newest first.</p>
+        </div>
+        <form method="POST" action="/api/reports">
+          <input type="hidden" name="project_id" value={project.id} />
+          <input type="hidden" name="slug" value={project.slug} />
+          <button
+            type="submit"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition-colors"
+          >
+            <FilePlus2 className="size-4" />
+            New report
+          </button>
+        </form>
       </div>
 
       {
-        okMessage && (
-          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
-            {okMessage}
-          </p>
+        reports.length === 0 ? (
+          <EmptyState title="No reports yet" description="Create the first report for this project." />
+        ) : (
+          <ul class="space-y-2">
+            {reports.map((report) => (
+              <li>
+                <a
+                  href={`/projects/${project.slug}/reports/${report.id}`}
+                  class="border-border bg-card hover:bg-accent flex items-center justify-between gap-3 rounded-lg border px-4 py-3 shadow-xs transition-colors"
+                >
+                  <span class="text-foreground font-medium">{report.month}</span>
+                  <span class="text-muted-foreground text-sm">{new Date(report.created_at).toLocaleDateString()}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         )
       }
-
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
-        <h1 class="mb-6 text-2xl font-bold">{project.name}</h1>
-        <ProjectForm
-          action={`/api/projects/${project.id}`}
-          mode="edit"
-          serverError={error}
-          returnSlug={project.slug}
-          initial={{
-            name: project.name,
-            slug: project.slug,
-            url: project.url ?? "",
-            contact_company: project.contact_company ?? "",
-            contact_name: project.contact_name ?? "",
-            contact_email: project.contact_email ?? "",
-            internal_notes: project.internal_notes ?? "",
-          }}
-          client:load
-        />
-      </div>
-
-      <section class="mt-8">
-        <h2 class="mb-1 text-lg font-semibold">Recurring plugins</h2>
-        <p class="mb-4 text-sm text-blue-100/60">
-          These plugins pre-fill every new report for this project. Pick from the catalog or add a new name.
-        </p>
-        <RecurringPlugins
-          projectId={project.id}
-          slug={project.slug}
-          recurring={recurring}
-          catalog={catalog.map((c) => ({ id: c.id, name: c.name }))}
-          serverError={error}
-          client:load
-        />
-      </section>
-
-      <section class="mt-8">
-        <div class="mb-4 flex items-center justify-between">
-          <div>
-            <h2 class="text-lg font-semibold">Reports</h2>
-            <p class="text-sm text-blue-100/60">Maintenance reports for this project, newest first.</p>
-          </div>
-          <form method="POST" action="/api/reports">
-            <input type="hidden" name="project_id" value={project.id} />
-            <input type="hidden" name="slug" value={project.slug} />
-            <button
-              type="submit"
-              class="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500"
-            >
-              + New report
-            </button>
-          </form>
-        </div>
-
-        {
-          reports.length === 0 ? (
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
-              <p>No reports yet. Create the first one.</p>
-            </div>
-          ) : (
-            <ul class="space-y-2">
-              {reports.map((report) => (
-                <li>
-                  <a
-                    href={`/projects/${project.slug}/reports/${report.id}`}
-                    class="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:bg-white/10"
-                  >
-                    <span class="font-medium">{report.month}</span>
-                    <span class="text-sm text-blue-100/50">{new Date(report.created_at).toLocaleDateString()}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-      </section>
-    </div>
+    </section>
   </div>
-</Layout>
+</AppShell>

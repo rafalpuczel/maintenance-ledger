@@ -1,5 +1,6 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import AppShell from "@/layouts/AppShell.astro";
+import Banner from "@/components/ui/Banner.astro";
 import PmContacts from "@/components/pm-contacts/PmContacts";
 import { createSupabaseClient } from "@/lib/supabase";
 import { listContacts } from "@/lib/pm-contacts/queries";
@@ -18,34 +19,22 @@ const okMessage =
         : null;
 ---
 
-<Layout title="PM contacts">
-  <div class="bg-cosmic min-h-screen p-6 text-white">
-    <div class="mx-auto max-w-2xl">
-      <div class="mb-6 flex items-center justify-between">
-        <a href="/" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Home</a>
-        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-xl font-bold text-transparent">
-          PM contacts
-        </h1>
-      </div>
-
-      {
-        okMessage && (
-          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
-            {okMessage}
-          </p>
-        )
-      }
-
-      <p class="mb-4 text-sm text-blue-100/60">
+<AppShell title="PM contacts">
+  <div class="mx-auto max-w-2xl">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold tracking-tight">PM contacts</h1>
+      <p class="text-muted-foreground mt-1 text-sm">
         The people you send reports to. Add a name and email for each PM so they’re available in the “Send to PM”
         picker.
       </p>
-
-      <PmContacts
-        entries={entries.map((e) => ({ id: e.id, name: e.name, email: e.email }))}
-        serverError={error}
-        client:load
-      />
     </div>
+
+    {okMessage && <Banner variant="success" message={okMessage} />}
+
+    <PmContacts
+      entries={entries.map((e) => ({ id: e.id, name: e.name, email: e.email }))}
+      serverError={error}
+      client:load
+    />
   </div>
-</Layout>
+</AppShell>

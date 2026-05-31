@@ -135,13 +135,13 @@ export default function BrandSettingsForm({ action, serverError, initial, update
       </div>
 
       <div>
-        <span className="mb-1 block text-sm text-blue-100/80">Logo</span>
+        <span className="text-foreground mb-1 block text-sm font-medium">Logo</span>
         <div className="flex items-center gap-4">
-          <div className="flex size-20 items-center justify-center overflow-hidden rounded-lg border border-white/20 bg-white/5">
+          <div className="border-border bg-muted flex size-20 items-center justify-center overflow-hidden rounded-lg border">
             {previewSrc ? (
               <img src={previewSrc} alt="Logo preview" className="max-h-full max-w-full object-contain" />
             ) : (
-              <ImageIcon className="size-6 text-white/30" />
+              <ImageIcon className="text-muted-foreground size-6" />
             )}
           </div>
           <div className="space-y-2">
@@ -151,19 +151,19 @@ export default function BrandSettingsForm({ action, serverError, initial, update
               type="file"
               accept="image/png,image/jpeg"
               onChange={handleFileChange}
-              className="block text-sm text-blue-100/70 file:mr-3 file:rounded-md file:border-0 file:bg-purple-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-purple-500"
+              className="text-muted-foreground file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 block text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
             />
             {previewSrc && (
               <button
                 type="button"
                 onClick={handleRemove}
-                className="flex items-center gap-1 text-xs text-red-300 underline-offset-4 hover:underline"
+                className="text-destructive flex items-center gap-1 text-xs underline-offset-4 hover:underline"
               >
                 <Trash2 className="size-3" />
                 Remove logo
               </button>
             )}
-            <p className="text-xs text-white/40">PNG or JPEG, up to 512 KB.</p>
+            <p className="text-muted-foreground text-xs">PNG or JPEG, up to 512 KB.</p>
           </div>
         </div>
         {removed && <input type="hidden" name="remove_logo" value="1" />}
@@ -175,7 +175,7 @@ export default function BrandSettingsForm({ action, serverError, initial, update
         Save changes
       </SubmitButton>
 
-      {updatedAt && <p className="text-center text-xs text-white/40">Last saved {updatedAt}</p>}
+      {updatedAt && <p className="text-muted-foreground text-center text-xs">Last saved {updatedAt}</p>}
     </form>
   );
 }
@@ -191,7 +191,7 @@ interface ColorFieldProps {
 function ColorField({ id, label, value, onChange, error }: ColorFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm text-blue-100/80">
+      <label htmlFor={id} className="text-foreground mb-1 block text-sm font-medium">
         {label}
       </label>
       <div className="flex items-center gap-2">
@@ -202,7 +202,7 @@ function ColorField({ id, label, value, onChange, error }: ColorFieldProps) {
           onChange={(e) => {
             onChange(e.target.value);
           }}
-          className="size-9 shrink-0 cursor-pointer rounded-md border border-white/20 bg-transparent"
+          className="border-input size-9 shrink-0 cursor-pointer rounded-md border bg-transparent"
         />
         <input
           id={id}
@@ -213,12 +213,14 @@ function ColorField({ id, label, value, onChange, error }: ColorFieldProps) {
             onChange(e.target.value);
           }}
           placeholder="#4f46e5"
-          className={`w-full rounded-lg border bg-white/10 px-3 py-2 text-white placeholder-white/40 transition-colors focus:ring-2 focus:outline-none ${
-            error ? "border-red-400/60 focus:ring-red-400" : "border-white/20 focus:ring-purple-400"
+          className={`bg-card text-foreground placeholder:text-muted-foreground w-full rounded-lg border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-[3px] focus-visible:outline-none ${
+            error
+              ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+              : "border-input focus-visible:border-ring focus-visible:ring-ring/50"
           }`}
         />
       </div>
-      {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
+      {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
     </div>
   );
 }

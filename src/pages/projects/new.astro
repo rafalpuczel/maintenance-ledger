@@ -1,20 +1,23 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import AppShell from "@/layouts/AppShell.astro";
 import ProjectForm from "@/components/projects/ProjectForm";
+import { ArrowLeft } from "lucide-react";
 
 const error = Astro.url.searchParams.get("error");
 ---
 
-<Layout title="New project">
-  <div class="bg-cosmic min-h-screen p-6 text-white">
-    <div class="mx-auto max-w-xl">
-      <div class="mb-6 flex items-center gap-3">
-        <a href="/projects" class="text-sm text-blue-100/60 underline-offset-4 hover:underline">← Projects</a>
-      </div>
-      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl">
-        <h1 class="mb-6 text-2xl font-bold">New project</h1>
-        <ProjectForm action="/api/projects" mode="create" serverError={error} client:load />
-      </div>
+<AppShell title="New project">
+  <div class="mx-auto max-w-xl">
+    <a
+      href="/projects"
+      class="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline"
+    >
+      <ArrowLeft className="size-4" />
+      Projects
+    </a>
+    <div class="border-border bg-card rounded-xl border p-8 shadow-sm">
+      <h1 class="mb-6 text-2xl font-bold tracking-tight">New project</h1>
+      <ProjectForm action="/api/projects" mode="create" serverError={error} client:load />
     </div>
   </div>
-</Layout>
+</AppShell>

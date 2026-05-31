@@ -25,7 +25,7 @@ type FieldErrors = Partial<Record<"name" | "email", string>>;
 function RowSubmit({ children, pendingText }: { children: React.ReactNode; pendingText: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="sm" disabled={pending} className="bg-purple-600 text-white hover:bg-purple-500">
+    <Button type="submit" size="sm" disabled={pending}>
       {pending ? pendingText : children}
     </Button>
   );
@@ -62,7 +62,7 @@ function AddForm({ serverError }: { serverError?: string | null }) {
     <form
       method="POST"
       action="/api/pm-contacts"
-      className="space-y-4 rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl"
+      className="border-border bg-card space-y-4 rounded-xl border p-6 shadow-sm"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -104,7 +104,7 @@ function ContactList({ entries }: { entries: Entry[] }) {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-blue-100/70">
+      <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed p-10 text-center">
         <p>No PM contacts yet.</p>
       </div>
     );
@@ -141,48 +141,44 @@ function ReadRow({ entry, onEdit }: { entry: Entry; onEdit: () => void }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+    <div className="border-border bg-card flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
       <div className="min-w-0">
         <p className="truncate font-medium">{entry.name}</p>
-        <p className="truncate text-sm text-blue-100/50">{entry.email}</p>
+        <p className="text-muted-foreground truncate text-sm">{entry.email}</p>
       </div>
       {confirming ? (
         <div className="flex shrink-0 items-center gap-2">
-          <span className="text-sm text-red-200">Delete?</span>
+          <span className="text-destructive text-sm">Delete?</span>
           <form method="POST" action={`/api/pm-contacts/${entry.id}/delete`}>
-            <Button type="submit" size="sm" className="bg-red-600 text-white hover:bg-red-500">
+            <Button type="submit" size="sm" variant="destructive">
               Confirm
             </Button>
           </form>
           <Button
             type="button"
             size="sm"
+            variant="secondary"
             onClick={() => {
               setConfirming(false);
             }}
-            className="border border-white/20 bg-white/10 hover:bg-white/20"
           >
             Cancel
           </Button>
         </div>
       ) : (
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={onEdit}
-            className="border border-white/20 bg-white/10 hover:bg-white/20"
-          >
+          <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
             <Pencil className="size-3" />
             Edit
           </Button>
           <Button
             type="button"
             size="sm"
+            variant="outline"
+            className="text-destructive hover:text-destructive"
             onClick={() => {
               setConfirming(true);
             }}
-            className="border border-red-500/40 bg-red-900/20 text-red-200 hover:bg-red-900/40"
           >
             <Trash2 className="size-3" />
             Delete
@@ -215,7 +211,7 @@ function EditRow({ entry, onCancel }: { entry: Entry; onCancel: () => void }) {
     <form
       method="POST"
       action={`/api/pm-contacts/${entry.id}`}
-      className="space-y-3 rounded-lg border border-purple-400/30 bg-white/10 p-4"
+      className="border-primary/40 bg-card space-y-3 rounded-lg border p-4 shadow-sm"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -249,12 +245,7 @@ function EditRow({ entry, onCancel }: { entry: Entry; onCancel: () => void }) {
           <Save className="size-3" />
           Save
         </RowSubmit>
-        <Button
-          type="button"
-          size="sm"
-          onClick={onCancel}
-          className="border border-white/20 bg-white/10 hover:bg-white/20"
-        >
+        <Button type="button" size="sm" variant="secondary" onClick={onCancel}>
           <X className="size-3" />
           Cancel
         </Button>

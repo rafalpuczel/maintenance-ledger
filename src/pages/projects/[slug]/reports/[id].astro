@@ -1,9 +1,11 @@
 ---
-import Layout from "@/layouts/Layout.astro";
+import AppShell from "@/layouts/AppShell.astro";
+import Banner from "@/components/ui/Banner.astro";
 import DeleteReportButton from "@/components/reports/DeleteReportButton";
 import ReportForm from "@/components/reports/ReportForm";
 import SendToClientButton from "@/components/reports/SendToClientButton";
 import SendToPmButton from "@/components/reports/SendToPmButton";
+import { ArrowLeft, FileText } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -43,79 +45,76 @@ const okMessage =
           ? "Report sent to the client."
           : null;
 
-// Catalog names feed the plugin-row datalist combobox in the form (Phase 5).
+// Catalog names feed the plugin-row datalist combobox in the form.
 const catalogNames = catalog.map((c) => c.name);
 ---
 
-<Layout title={`${project.name} — ${report.month}`}>
-  <div class="bg-cosmic min-h-screen p-6 text-white">
-    <div class="mx-auto max-w-2xl">
-      <div class="mb-6 flex items-center justify-between">
-        <a href={`/projects/${project.slug}`} class="text-sm text-blue-100/60 underline-offset-4 hover:underline">
-          ← {project.name}
+<AppShell title={`${project.name} — ${report.month}`}>
+  <div class="mx-auto max-w-2xl">
+    <a
+      href={`/projects/${project.slug}`}
+      class="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline"
+    >
+      <ArrowLeft className="size-4" />
+      {project.name}
+    </a>
+
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Report — {report.month}</h1>
+        <p class="text-muted-foreground text-sm">{project.name}</p>
+      </div>
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <a
+          href={`/api/reports/${report.id}/pdf`}
+          target="_blank"
+          rel="noopener"
+          class="border-input bg-card hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center gap-2 rounded-md border px-4 text-sm font-medium shadow-xs transition-colors"
+        >
+          <FileText className="size-4" />
+          View PDF
         </a>
-        <div class="flex items-center gap-3">
-          <a
-            href={`/api/reports/${report.id}/pdf`}
-            target="_blank"
-            rel="noopener"
-            class="rounded-lg border border-blue-400/40 bg-blue-900/30 px-3 py-1.5 text-sm text-blue-100 hover:bg-blue-900/50"
-          >
-            View PDF
-          </a>
-          <SendToPmButton
-            reportId={report.id}
-            slug={project.slug}
-            contacts={contacts.map((c) => ({ id: c.id, name: c.name, email: c.email }))}
-            lastSend={sends.pm}
-            client:load
-          />
-          <SendToClientButton
-            reportId={report.id}
-            slug={project.slug}
-            clientEmail={project.contact_email}
-            lastSend={sends.client}
-            client:load
-          />
-          <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
-        </div>
+        <SendToPmButton
+          reportId={report.id}
+          slug={project.slug}
+          contacts={contacts.map((c) => ({ id: c.id, name: c.name, email: c.email }))}
+          lastSend={sends.pm}
+          client:load
+        />
+        <SendToClientButton
+          reportId={report.id}
+          slug={project.slug}
+          clientEmail={project.contact_email}
+          lastSend={sends.client}
+          client:load
+        />
+        <DeleteReportButton reportId={report.id} slug={project.slug} client:load />
       </div>
-
-      {
-        okMessage && (
-          <p class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-200">
-            {okMessage}
-          </p>
-        )
-      }
-
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold">Report — {report.month}</h1>
-        <p class="text-sm text-blue-100/60">{project.name}</p>
-      </div>
-
-      <ReportForm
-        action={`/api/reports/${report.id}`}
-        slug={project.slug}
-        month={report.month}
-        catalogNames={catalogNames}
-        serverError={error}
-        initial={{
-          wp_core_version: report.wp_core_version,
-          wp_core_updated: report.wp_core_updated,
-          php_updated: report.php_updated,
-          php_from_version: report.php_from_version,
-          php_to_version: report.php_to_version,
-          integrity_status: report.integrity_status,
-          integrity_issues: report.integrity_issues,
-          fixes_applied: report.fixes_applied,
-          notes_to_client: report.notes_to_client,
-          plugins: report.plugins,
-          themes: report.themes,
-          licenses: report.licenses,
-        }}
-        client:load
-      />
     </div>
+
+    {okMessage && <Banner variant="success" message={okMessage} />}
+
+    <ReportForm
+      action={`/api/reports/${report.id}`}
+      slug={project.slug}
+      month={report.month}
+      catalogNames={catalogNames}
+      serverError={error}
+      initial={{
+        wp_core_version: report.wp_core_version,
+        wp_core_updated: report.wp_core_updated,
+        php_updated: report.php_updated,
+        php_from_version: report.php_from_version,
+        php_to_version: report.php_to_version,
+        integrity_status: report.integrity_status,
+        integrity_issues: report.integrity_issues,
+        fixes_applied: report.fixes_applied,
+        notes_to_client: report.notes_to_client,
+        plugins: report.plugins,
+        themes: report.themes,
+        licenses: report.licenses,
+      }}
+      client:load
+    />
   </div>
-</Layout>
+</AppShell>
