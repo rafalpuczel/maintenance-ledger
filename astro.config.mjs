@@ -10,10 +10,16 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
+  adapter: cloudflare(),
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      // Force a single React instance across island bundles. Without this,
+      // sonner's <Toaster> island can bind to a different React copy than the
+      // renderer, triggering "Invalid hook call".
+      dedupe: ["react", "react-dom"],
+    },
   },
-  adapter: cloudflare(),
   env: {
     schema: {
       SUPABASE_URL: envField.string({ context: "server", access: "secret" }),
