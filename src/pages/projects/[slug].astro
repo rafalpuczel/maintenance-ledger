@@ -4,7 +4,8 @@ import EmptyState from "@/components/ui/EmptyState.astro";
 import ProjectForm from "@/components/projects/ProjectForm";
 import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
 import RecurringPlugins from "@/components/project-recurring-plugins/RecurringPlugins";
-import { ArrowLeft, FilePlus2 } from "lucide-react";
+import NewReportButton from "@/components/reports/NewReportButton";
+import { ArrowLeft } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
 import { getProjectBySlug } from "@/lib/projects/queries";
 import { listCatalog } from "@/lib/plugins-catalog/queries";
@@ -44,7 +45,6 @@ const [recurring, catalog, reports] = await Promise.all([
       <ProjectForm
         action={`/api/projects/${project.id}`}
         mode="edit"
-        returnSlug={project.slug}
         initial={{
           name: project.name,
           slug: project.slug,
@@ -78,17 +78,7 @@ const [recurring, catalog, reports] = await Promise.all([
           <h2 class="text-lg font-semibold">Reports</h2>
           <p class="text-muted-foreground text-sm">Maintenance reports for this project, newest first.</p>
         </div>
-        <form method="POST" action="/api/reports">
-          <input type="hidden" name="project_id" value={project.id} />
-          <input type="hidden" name="slug" value={project.slug} />
-          <button
-            type="submit"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition-colors"
-          >
-            <FilePlus2 className="size-4" />
-            New report
-          </button>
-        </form>
+        <NewReportButton projectId={project.id} slug={project.slug} client:load />
       </div>
 
       {
