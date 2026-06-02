@@ -294,29 +294,29 @@ The only production change is the behavior-preserving extraction of `login.ts`'s
 
 #### Automated
 
-- [x] 1.1 Unit suite passes: `npm test`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Type-check passes: `npx astro check`
-- [x] 1.4 New gate test collected by Vitest and asserts unknown-path, public-set, and near-miss cases
+- [x] 1.1 Unit suite passes: `npm test` — f135f68
+- [x] 1.2 Lint passes: `npm run lint` — f135f68
+- [x] 1.3 Type-check passes: `npx astro check` — f135f68
+- [x] 1.4 New gate test collected by Vitest and asserts unknown-path, public-set, and near-miss cases — f135f68
 
 #### Manual
 
-- [x] 1.5 Flipping a `PUBLIC_PATHS` entry makes the test fail (guard confirmed), then revert
+- [x] 1.5 Flipping a `PUBLIC_PATHS` entry makes the test fail (guard confirmed), then revert — f135f68
 
 ### Phase 2: Throttle-wiring + no-enumeration test
 
 #### Automated
 
-- [ ] 2.1 Unit suite passes: `npm test`
-- [ ] 2.2 Lint passes: `npm run lint`
-- [ ] 2.3 Type-check passes: `npx astro check`
-- [ ] 2.4 `npm run build` succeeds (route refactor still builds)
-- [ ] 2.5 Wiring test asserts record/clear via spies and null-IP `MAX_DELAY_MS` without a real sleep
+- [x] 2.1 Unit suite passes: `npm test`
+- [x] 2.2 Lint passes: `npm run lint`
+- [x] 2.3 Type-check passes: `npx astro check`
+- [x] 2.4 `npm run build` succeeds (route refactor still builds)
+- [x] 2.5 Wiring test asserts record/clear via spies and null-IP `MAX_DELAY_MS` without a real sleep
 
 #### Manual
 
-- [ ] 2.6 Manual login in dev unchanged (correct → `/`, wrong → `/login?error=…`)
-- [ ] 2.7 Mutating a seam call makes the wiring test fail, then revert
+- [x] 2.6 Manual login in dev unchanged (correct → `/`, wrong → `/login?error=…`)
+- [x] 2.7 Mutating a seam call makes the wiring test fail, then revert
 
 ### Phase 3: Workerd harness spike + route integration tests (fail-closed, cookie flags)
 
