@@ -322,27 +322,27 @@ The only production change is the behavior-preserving extraction of `login.ts`'s
 
 #### Automated
 
-- [x] 3.1 Workers suite runs green: `npm run test:workers` (G5 + G7)
-- [x] 3.2 `npm run build` succeeds before the workers suite
-- [x] 3.3 G7 checks all five cookie attributes including `SameSite=Lax`
-- [x] 3.4 G5 confirms malformed body → 302 `/login`, no valid session cookie, not 5xx
-- [x] 3.5 Lint + type-check pass on new test/helper/config files
+- [x] 3.1 Workers suite runs green: `npm run test:workers` (G5 + G7) — f3e4a1c
+- [x] 3.2 `npm run build` succeeds before the workers suite — f3e4a1c
+- [x] 3.3 G7 checks all five cookie attributes including `SameSite=Lax` — f3e4a1c
+- [x] 3.4 G5 confirms malformed body → 302 `/login`, no valid session cookie, not 5xx — f3e4a1c
+- [x] 3.5 Lint + type-check pass on new test/helper/config files — f3e4a1c
 
 #### Manual
 
-- [x] 3.6 `spike-notes.md` records runner verdict + working config + gotchas
-- [x] 3.7 Shared helper importable; build-first documented; scratch boot+fetch works
-- [x] 3.8 `@cloudflare/vitest-pool-workers` installed only after explicit approval (if adopted) — N/A, not installed (no-install fallback)
+- [x] 3.6 `spike-notes.md` records runner verdict + working config + gotchas — f3e4a1c
+- [x] 3.7 Shared helper importable; build-first documented; scratch boot+fetch works — f3e4a1c
+- [x] 3.8 `@cloudflare/vitest-pool-workers` installed only after explicit approval (if adopted) — N/A, not installed (no-install fallback) — f3e4a1c
 
 ### Phase 4: Cookbook + test-plan sync
 
 #### Automated
 
-- [ ] 4.1 Full suite still green: `npm test` and `npm run test:workers`
-- [ ] 4.2 `test-plan.md §6.2` no longer says "TBD — see §3 Phase 1" for the integration row
-- [ ] 4.3 `test-plan.md §3` Phase-1 Status updated; §6.5 has a dated note
+- [x] 4.1 Full suite still green: `npm test` and `npm run test:workers`
+- [x] 4.2 `test-plan.md §6.2` no longer says "TBD — see §3 Phase 1" for the integration row
+- [x] 4.3 `test-plan.md §3` Phase-1 Status updated; §6.5 has a dated note
 
 #### Manual
 
-- [ ] 4.4 A reader can follow §6.2 to add an integration test without this plan
-- [ ] 4.5 `change.md` status is `implemented`
+- [x] 4.4 A reader can follow §6.2 to add an integration test without this plan
+- [x] 4.5 `change.md` status is `implemented`

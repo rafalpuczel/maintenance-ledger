@@ -87,7 +87,7 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|------------------|----------------|------------|--------|----------------|
-| 1 | Integration harness + request-path coverage | Stand up the first integration layer (route handlers + a real local-Supabase DB) and prove save→PDF, per-route auth gate, `[id]` scope checks, and the RLS-bypass guard on the highest-churn, zero-test surface. | #1, #2, #6 | integration (route handlers + real-DB) + harness bootstrap | not started | — |
+| 1 | Integration harness + request-path coverage | Stand up the first integration layer (route handlers + a real local-Supabase DB) and prove save→PDF, per-route auth gate, `[id]` scope checks, and the RLS-bypass guard on the highest-churn, zero-test surface. | #1, #2, #6 | integration (route handlers + real-DB) + harness bootstrap | implementing (risk #2 + shared harness complete 2026-06-02; risks #1/#6 ride the same `unstable_startWorker` harness — research not yet done) | `auth-gate-throttle` (risk #2) |
 | 2 | Send path + no-leak boundary | Prove the send record is gated on confirmed dispatch (right PDF, re-send guard) and no internal field leaks into client-facing output. | #3, #4 | integration (send handler, Resend stubbed) + unit (token/section field whitelist) | not started | — |
 | 3 | Parser fallback hardening | Prove the WP-CLI single-row fallback never drops data on a malformed real-world paste. | #5 | unit (extend existing parser test) | not started | — |
 | 4 | Quality-gates wiring + critical-flow e2e | Wire the integration suite into CI (currently lint+build only) and add one e2e on the full author→save→PDF→send loop. | #1, #3 (regression lock) | CI gate wiring + 1 e2e (critical flow only) | not started | — |
@@ -102,9 +102,9 @@ The classic test base for this project. AI-native tools (if any) carry a
 | Layer | Tool | Version | Notes |
 |-------|------|---------|-------|
 | unit | Vitest | 3.2.4 | `node` env; 16 tests, all in `src/lib/**` (schemas, parsers, render-helpers, form mappers). `include: ["src/**/*.test.ts"]`. No `@/` alias in vitest — import siblings relatively (archive S-06 lesson). |
-| integration (API routes) | none yet — see §3 Phase 1 | — | The whole request path (`src/pages/api/**`, `src/middleware.ts`) is untested. Phase 1 picks the harness (Astro container / `app.render` vs `wrangler unstable_dev`) during `/10x-research`. |
-| integration (real DB) | local Supabase — see §3 Phase 1 | — | Run the `src/lib/<domain>/queries.ts` modules against a real local Supabase (`npx supabase start`, migrations via `migration up --local` — never `db reset`, it wipes seeds; see memory `local-supabase-dev-topology`, `local-migration-apply-no-reset`). Needed to prove R6 honestly: the Worker uses the `sb_secret_` service key, which **bypasses RLS**, so only a real DB shows whether a constraint/handler check — not a policy — is the actual guard. Phase 1 research decides the seed/reset-between-tests strategy and whether CI uses a Supabase service container (else CI stays stubbed and real-DB runs locally). |
-| API/network mocking | none yet — see §3 Phase 1 | — | Policy: stub only the *external* network edge (Resend HTTP, the FormePDF render boundary) — never internal modules, and **not** the Supabase boundary in the real-DB layer above. Tool chosen during Phase 1 research. |
+| integration (API routes) | Vitest + `unstable_startWorker` (workerd) for route handlers; plain-Node Vitest for extracted decision seams | 3.2.4 / wrangler 4.93.1 | Risk #2 shipped the first layer (§3 Phase 1): seam logic on plain-Node Vitest, the two workerd-only behaviors via `unstable_startWorker` against the built `@astrojs/cloudflare` entry. Shared harness: `test/workers-harness.ts`; recipe + gotchas in §6.2 + `auth-gate-throttle/spike-notes.md`. `@cloudflare/vitest-pool-workers` evaluated, **not adopted** (Astro-SSR support undocumented). |
+| integration (real DB) | local Supabase via the `unstable_startWorker` harness (risks #1/#6 — not built yet) | — | Run the `src/lib/<domain>/queries.ts` modules against a real local Supabase (`npx supabase start`, migrations via `migration up --local` — never `db reset`, it wipes seeds; see memory `local-supabase-dev-topology`, `local-migration-apply-no-reset`). Needed to prove R6 honestly: the Worker uses the `sb_secret_` service key, which **bypasses RLS**, so only a real DB shows whether a constraint/handler check — not a policy — is the actual guard. The Phase-1 risk-#2 slice did not need a DB; risks #1/#6 add `SUPABASE_URL` via the harness `vars`. Open: whether CI wires a Supabase service container (else CI stays stubbed and real-DB runs locally) — decided when #1/#6 land. |
+| API/network mocking | none yet — see §3 Phase 1 (risk #2 needed none) | — | Policy: stub only the *external* network edge (Resend HTTP, the FormePDF render boundary) — never internal modules, and **not** the Supabase boundary in the real-DB layer above. The risk-#2 slice exercised the real worker end-to-end and needed no network mock; the Resend/FormePDF stub tool is chosen when risks #1/#3 land. |
 | e2e | none yet — see §3 Phase 4 | — | Playwright is the likely pick but is not installed; Phase 4 provisions it. Reserved for the single author→save→PDF→send critical flow. |
 | accessibility | none (out of scope) | — | The S-10 redesign did a manual WCAG-AA pass; automated a11y suites are negative space (§7). |
 | (optional) AI-native | not adopted | n/a | No AI-native test layer justified under cost × signal for a 5-user internal tool; revisit only if a DOM-unreachable surface appears. |
@@ -148,7 +148,60 @@ relevant rollout phase ships; before that it reads "TBD — see §3 Phase `<N>`.
 
 ### 6.2 Adding an integration test (API route + real DB)
 
-- TBD — see §3 Phase 1 (this is the load-bearing gap; Phase 1 picks the harness, the local-Supabase setup/seed/reset-between-tests strategy, and writes the canonical reference test for the save→PDF, auth-gate, `[id]`-scope, and RLS-bypass patterns). Local DB lifecycle: `npx supabase start` + `migration up --local` (never `db reset`).
+Phase 1 (risk #2) established a **two-layer** pattern. Pick the cheapest layer that
+gives a real signal — do not default to the workerd layer.
+
+**Layer A — plain-Node seam (default; sub-second, no build, no runtime).**
+For request-path *logic* (gate decisions, throttle/credential orchestration, any
+rule you can express without a real binding):
+
+1. Extract the decision logic into a **virtual-import-free** module — no
+   `astro:*` / `cloudflare:*` imports, or Vitest can't collect it (a green
+   `build`/`astro check` does NOT imply a green `npm test`). See the S-06 lesson.
+   The route stays a thin adapter that reads `env`/secrets and calls the seam.
+2. Inject dependencies (`KVLike`, a `sleep`/clock, secret *values*) as parameters
+   so the test drives them with a fake KV + spies. Assert *which calls fire on
+   which branch* and *the decision* — never re-assert unit-covered math (delay
+   schedule, HMAC).
+3. Collocate the test next to the module; import siblings **relatively**.
+- **Templates**: `src/middleware-gate.test.ts` (gate predicate via
+  `src/lib/auth/public-paths.ts`), `src/lib/auth/login-flow.test.ts` (throttle
+  wiring via the `decideLogin` seam + spy KV + spy sleep).
+- **Run**: `npm test`.
+
+**Layer B — workerd route integration (only for what needs the real runtime).**
+For behavior that only manifests in workerd (the fail-closed `catch` that needs a
+real `formData()`/KV throw; the actual `Set-Cookie` attributes; the real binding
+wiring). Runner verdict: **`unstable_startWorker`** (ships inside `wrangler`, no
+extra dependency). `@cloudflare/vitest-pool-workers` was evaluated and **not
+adopted** (uninstalled; Astro-SSR support undocumented) — revisit only if the HTTP
+layer becomes a bottleneck.
+
+1. **Build first** — `npm run test:workers` runs `astro build` then the suite.
+   Boot against the adapter-**generated** `dist/server/wrangler.json` (NOT the root
+   `wrangler.jsonc`, whose `main` is the source entry and won't boot).
+2. Use the shared helper **`test/workers-harness.ts`** (`startTestWorker()` →
+   `{ fetch, dispose }`). It MUST live in top-level `test/`, never `src/` — a
+   `wrangler` import under `src/` drags `blake3-wasm` into the Astro SSR build and
+   breaks `astro build`.
+3. **Secrets**: the worker reads project-root `.dev.vars` automatically. Tests read
+   credentials from `process.env` (loaded by `test/load-dev-vars.ts` setup) —
+   **never hardcode a secret** in a committed test; skip the case if the env var is
+   absent. Note: `unstable_startWorker({ vars })` does NOT *override* `.dev.vars`
+   secrets (it only adds *new* bindings like `SUPABASE_URL` for #1/#6).
+4. **Edge headers**: send `CF-Connecting-IP` (else the route treats the request as
+   untrusted → `MAX_DELAY_MS` 5 s sleep) and, for form-encoded POSTs, an `Origin`
+   matching the host (Astro's `security.checkOrigin` returns 403 otherwise).
+- **Template**: `test/login.workers.test.ts` (G5 fail-closed, G7 cookie flags).
+- **Run**: `npm run test:workers`. Full runner verdict + gotchas:
+  `context/changes/auth-gate-throttle/spike-notes.md`.
+
+**Real-DB integration (risks #1/#6, not yet built).** Same Layer-B harness, plus a
+real local Supabase: `npx supabase start` + `migration up --local` (never
+`db reset` — it wipes seeds; see memory `local-supabase-dev-topology`,
+`local-migration-apply-no-reset`). Pass `SUPABASE_URL` via the harness `vars`. A
+PostgREST stub cannot prove the `sb_secret_` service key bypasses RLS — that is the
+whole reason #6 needs a real DB.
 
 ### 6.3 Adding a test for the send / no-leak boundary
 
@@ -163,6 +216,20 @@ relevant rollout phase ships; before that it reads "TBD — see §3 Phase `<N>`.
 (Optional. After each phase lands, `/10x-implement` appends a 2–3 line note
 here capturing anything surprising the phase taught — e.g. which harness
 worked on workerd, where fixtures live.)
+
+- **2026-06-02 — Phase 1, risk #2 (auth gate + throttle) shipped.** Two-layer split
+  (see §6.2): plain-Node seam tests for the gate/throttle *logic*, `unstable_startWorker`
+  for the two workerd-only behaviors (fail-closed catch, cookie flags). Surprises:
+  (1) a `wrangler` import under `src/` breaks `astro build` (`blake3-wasm` pulled
+  into the SSR graph) — workerd test code lives in top-level `test/`; (2) boot against
+  the adapter-generated `dist/server/wrangler.json`, not the root config; (3) Astro
+  `checkOrigin` 403s form POSTs without a matching `Origin`; (4) `vars` injected into
+  `unstable_startWorker` don't override `.dev.vars` secrets, and secrets must be read
+  from env at runtime (never hardcoded — a first cut was correctly blocked at commit).
+  The shared harness `test/workers-harness.ts` is ready for risks #1/#6 to import
+  (add `SUPABASE_URL` via `vars` + a local Supabase). Risks #1 and #6 still ride this
+  same harness; their oracle research is not yet done. Full detail:
+  `context/changes/auth-gate-throttle/spike-notes.md`.
 
 ## 7. What We Deliberately Don't Test
 
