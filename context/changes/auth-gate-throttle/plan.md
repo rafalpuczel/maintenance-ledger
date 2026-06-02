@@ -338,11 +338,11 @@ The only production change is the behavior-preserving extraction of `login.ts`'s
 
 #### Automated
 
-- [x] 4.1 Full suite still green: `npm test` and `npm run test:workers`
-- [x] 4.2 `test-plan.md §6.2` no longer says "TBD — see §3 Phase 1" for the integration row
-- [x] 4.3 `test-plan.md §3` Phase-1 Status updated; §6.5 has a dated note
+- [x] 4.1 Full suite still green: `npm test` and `npm run test:workers` — 05936a2
+- [x] 4.2 `test-plan.md §6.2` no longer says "TBD — see §3 Phase 1" for the integration row — 05936a2
+- [x] 4.3 `test-plan.md §3` Phase-1 Status updated; §6.5 has a dated note — 05936a2
 
 #### Manual
 
-- [x] 4.4 A reader can follow §6.2 to add an integration test without this plan
-- [x] 4.5 `change.md` status is `implemented`
+- [x] 4.4 A reader can follow §6.2 to add an integration test without this plan — 05936a2
+- [x] 4.5 `change.md` status is `implemented` — 05936a2
