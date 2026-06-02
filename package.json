@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:workers": "astro build && vitest run --config vitest.workers.config.ts",
     "db:push": "supabase db push --linked",
     "db:types": "supabase gen types --linked --schema public > src/types/database.types.ts"
   },

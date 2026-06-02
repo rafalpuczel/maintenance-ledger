@@ -307,32 +307,32 @@ The only production change is the behavior-preserving extraction of `login.ts`'s
 
 #### Automated
 
-- [x] 2.1 Unit suite passes: `npm test`
-- [x] 2.2 Lint passes: `npm run lint`
-- [x] 2.3 Type-check passes: `npx astro check`
-- [x] 2.4 `npm run build` succeeds (route refactor still builds)
-- [x] 2.5 Wiring test asserts record/clear via spies and null-IP `MAX_DELAY_MS` without a real sleep
+- [x] 2.1 Unit suite passes: `npm test` — 2cc20ad
+- [x] 2.2 Lint passes: `npm run lint` — 2cc20ad
+- [x] 2.3 Type-check passes: `npx astro check` — 2cc20ad
+- [x] 2.4 `npm run build` succeeds (route refactor still builds) — 2cc20ad
+- [x] 2.5 Wiring test asserts record/clear via spies and null-IP `MAX_DELAY_MS` without a real sleep — 2cc20ad
 
 #### Manual
 
-- [x] 2.6 Manual login in dev unchanged (correct → `/`, wrong → `/login?error=…`)
-- [x] 2.7 Mutating a seam call makes the wiring test fail, then revert
+- [x] 2.6 Manual login in dev unchanged (correct → `/`, wrong → `/login?error=…`) — 2cc20ad
+- [x] 2.7 Mutating a seam call makes the wiring test fail, then revert — 2cc20ad
 
 ### Phase 3: Workerd harness spike + route integration tests (fail-closed, cookie flags)
 
 #### Automated
 
-- [ ] 3.1 Workers suite runs green: `npm run test:workers` (G5 + G7)
-- [ ] 3.2 `npm run build` succeeds before the workers suite
-- [ ] 3.3 G7 checks all five cookie attributes including `SameSite=Lax`
-- [ ] 3.4 G5 confirms malformed body → 302 `/login`, no valid session cookie, not 5xx
-- [ ] 3.5 Lint + type-check pass on new test/helper/config files
+- [x] 3.1 Workers suite runs green: `npm run test:workers` (G5 + G7)
+- [x] 3.2 `npm run build` succeeds before the workers suite
+- [x] 3.3 G7 checks all five cookie attributes including `SameSite=Lax`
+- [x] 3.4 G5 confirms malformed body → 302 `/login`, no valid session cookie, not 5xx
+- [x] 3.5 Lint + type-check pass on new test/helper/config files
 
 #### Manual
 
-- [ ] 3.6 `spike-notes.md` records runner verdict + working config + gotchas
-- [ ] 3.7 Shared helper importable; build-first documented; scratch boot+fetch works
-- [ ] 3.8 `@cloudflare/vitest-pool-workers` installed only after explicit approval (if adopted)
+- [x] 3.6 `spike-notes.md` records runner verdict + working config + gotchas
+- [x] 3.7 Shared helper importable; build-first documented; scratch boot+fetch works
+- [x] 3.8 `@cloudflare/vitest-pool-workers` installed only after explicit approval (if adopted) — N/A, not installed (no-install fallback)
 
 ### Phase 4: Cookbook + test-plan sync
 
