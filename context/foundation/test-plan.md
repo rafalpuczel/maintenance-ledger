@@ -88,7 +88,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|------------------|----------------|------------|--------|----------------|
 | 1 | Integration harness + request-path coverage | Stand up the first integration layer (route handlers + a real local-Supabase DB) and prove save→PDF, per-route auth gate, `[id]` scope checks, and the RLS-bypass guard on the highest-churn, zero-test surface. | #1, #2, #6 | integration (route handlers + real-DB) + harness bootstrap | implementing (risk #2 + shared harness complete 2026-06-02; risks #1/#6 ride the same `unstable_startWorker` harness — research not yet done) | `auth-gate-throttle` (risk #2) |
-| 2 | Send path + no-leak boundary | Prove the send record is gated on confirmed dispatch (right PDF, re-send guard) and no internal field leaks into client-facing output. | #3, #4 | integration (send handler, Resend stubbed) + unit (token/section field whitelist) | researched (risk #3 oracle done 2026-06-04; risk #4 not yet) | `report-email-send-tests` (risk #3) |
+| 2 | Send path + no-leak boundary | Prove the send record is gated on confirmed dispatch (right PDF, re-send guard) and no internal field leaks into client-facing output. | #3, #4 | integration (send handler, Resend stubbed) + unit (token/section field whitelist) | implementing (risk #3 **complete** 2026-06-04 — real-DB harness + send oracle shipped; risk #4 not started) | `report-email-send-tests` (risk #3) |
 | 3 | Parser fallback hardening | Prove the WP-CLI single-row fallback never drops data on a malformed real-world paste. | #5 | unit (extend existing parser test) | not started | — |
 | 4 | Quality-gates wiring + critical-flow e2e | Wire the integration suite into CI (currently lint+build only) and add one e2e on the full author→save→PDF→send loop. | #1, #3 (regression lock) | CI gate wiring + 1 e2e (critical flow only) | not started | — |
 
@@ -103,8 +103,8 @@ The classic test base for this project. AI-native tools (if any) carry a
 |-------|------|---------|-------|
 | unit | Vitest | 3.2.4 | `node` env; 16 tests, all in `src/lib/**` (schemas, parsers, render-helpers, form mappers). `include: ["src/**/*.test.ts"]`. No `@/` alias in vitest — import siblings relatively (archive S-06 lesson). |
 | integration (API routes) | Vitest + `unstable_startWorker` (workerd) for route handlers; plain-Node Vitest for extracted decision seams | 3.2.4 / wrangler 4.93.1 | Risk #2 shipped the first layer (§3 Phase 1): seam logic on plain-Node Vitest, the two workerd-only behaviors via `unstable_startWorker` against the built `@astrojs/cloudflare` entry. Shared harness: `test/workers-harness.ts`; recipe + gotchas in §6.2 + `auth-gate-throttle/spike-notes.md`. `@cloudflare/vitest-pool-workers` evaluated, **not adopted** (Astro-SSR support undocumented). |
-| integration (real DB) | local Supabase via the `unstable_startWorker` harness (risks #1/#6 — not built yet) | — | Run the `src/lib/<domain>/queries.ts` modules against a real local Supabase (`npx supabase start`, migrations via `migration up --local` — never `db reset`, it wipes seeds; see memory `local-supabase-dev-topology`, `local-migration-apply-no-reset`). Needed to prove R6 honestly: the Worker uses the `sb_secret_` service key, which **bypasses RLS**, so only a real DB shows whether a constraint/handler check — not a policy — is the actual guard. The Phase-1 risk-#2 slice did not need a DB; risks #1/#6 add `SUPABASE_URL` via the harness `vars`. Open: whether CI wires a Supabase service container (else CI stays stubbed and real-DB runs locally) — decided when #1/#6 land. |
-| API/network mocking | none yet — see §3 Phase 1 (risk #2 needed none) | — | Policy: stub only the *external* network edge (Resend HTTP, the FormePDF render boundary) — never internal modules, and **not** the Supabase boundary in the real-DB layer above. The risk-#2 slice exercised the real worker end-to-end and needed no network mock; the Resend/FormePDF stub tool is chosen when risks #1/#3 land. |
+| integration (real DB) | local Supabase via the `unstable_startWorker` harness (**built** by risk #3; reused by #1/#6) | wrangler 4.93.1 | Run the route handlers (+ their `src/lib/<domain>/queries.ts`) against a real local Supabase (`npx supabase start`, migrations via `migration up --local` — never `db reset`, it wipes seeds; see memory `local-supabase-dev-topology`, `local-migration-apply-no-reset`). Needed to prove R6 honestly: the Worker uses the `sb_secret_` service key, which **bypasses RLS**, so only a real DB shows whether a constraint/handler check — not a policy — is the actual guard. **The worker reads `SUPABASE_URL`/`SUPABASE_SECRET_KEY` from `.dev.vars`, NOT harness `vars`** (the Astro env layer ignores runtime `vars` — corrected by risk #3; see §6.2/§6.5). Tests use `createAdminClient()` + `isDbReachable()` (skip when down). Open: whether CI wires a Supabase service container (else CI stays stubbed and real-DB runs locally) — still open after #3; decided when CI wiring (§3 Phase 4) lands. |
+| API/network mocking | Resend HTTP edge stubbed via a local intercept (risk #3); FormePDF render not stubbed (exercised live) | — | Policy: stub only the *external* network edge — never internal modules, and **not** the Supabase boundary in the real-DB layer above. Risk #3 stubs Resend with `test/resend-intercept.ts` + the `RESEND_BASE_URL` seam in `send-report.ts` (test-only, unset in prod). The risk-#2 slice needed no network mock. |
 | e2e | none yet — see §3 Phase 4 | — | Playwright is the likely pick but is not installed; Phase 4 provisions it. Reserved for the single author→save→PDF→send critical flow. |
 | accessibility | none (out of scope) | — | The S-10 redesign did a manual WCAG-AA pass; automated a11y suites are negative space (§7). |
 | (optional) AI-native | not adopted | n/a | No AI-native test layer justified under cost × signal for a 5-user internal tool; revisit only if a DOM-unreachable surface appears. |
@@ -196,16 +196,50 @@ layer becomes a bottleneck.
 - **Run**: `npm run test:workers`. Full runner verdict + gotchas:
   `context/changes/auth-gate-throttle/spike-notes.md`.
 
-**Real-DB integration (risks #1/#6, not yet built).** Same Layer-B harness, plus a
-real local Supabase: `npx supabase start` + `migration up --local` (never
-`db reset` — it wipes seeds; see memory `local-supabase-dev-topology`,
-`local-migration-apply-no-reset`). Pass `SUPABASE_URL` via the harness `vars`. A
-PostgREST stub cannot prove the `sb_secret_` service key bypasses RLS — that is the
-whole reason #6 needs a real DB.
+**Real-DB integration (built by `report-email-send-tests`; reused by risks #1/#6).**
+Same Layer-B harness, plus a real local Supabase: `npx supabase start` +
+`migration up --local` (never `db reset` — it wipes seeds; see memory
+`local-supabase-dev-topology`, `local-migration-apply-no-reset`). **The worker reads
+`SUPABASE_URL`/`SUPABASE_SECRET_KEY` from `.dev.vars` automatically — do NOT inject
+them via harness `vars`** (corrects the earlier assumption: `unstable_startWorker`
+`vars` reach the workerd `env` binding but do NOT surface in `astro:env/server`,
+which resolves from `.dev.vars`/build-time — proven in `report-email-send-tests/spike-notes.md`).
+The *test process* uses `createAdminClient()` (in `test/workers-harness.ts`) for
+seeding/asserting/cleanup, and `isDbReachable()` as the skip-guard. A PostgREST stub
+cannot prove the `sb_secret_` service key bypasses RLS — that is the whole reason #6
+needs a real DB.
 
 ### 6.3 Adding a test for the send / no-leak boundary
 
-- TBD — see §3 Phase 2 (record-gated-on-dispatch pattern; internal-field-never-leaks-into-client-output pattern).
+**Send path (risk #3) — record-gated-on-dispatch, real DB + stubbed Resend.** Shipped
+by `report-email-send-tests`; template `test/send.workers.test.ts`. Same Layer-B
+workerd harness as §6.2, plus the real-DB layer and a Resend intercept:
+
+1. **Real DB.** `npx supabase start` + `migration up --local` (never `db reset`). The
+   worker reads `SUPABASE_URL`/`SUPABASE_SECRET_KEY` from `.dev.vars` automatically —
+   no harness wiring. The *test process* gets its own admin client via
+   `createAdminClient()` (HTTP/PostgREST, never `pg`) to seed fixtures, count rows,
+   and clean up; `isDbReachable()` is the skip-guard (await it at module scope, feed
+   `describe.skipIf`) so the suite **skips, not fails**, when Supabase is down.
+2. **Stub the Resend edge (test-plan §7), workerd-safe.** The Resend SDK freezes its
+   host from `process.env` at module-load and takes no base-URL override, so it can't
+   be redirected at call time. `send-report.ts` carries a behavior-preserving seam:
+   when `RESEND_BASE_URL` (from `.dev.vars`, test-only, **unset in prod**) is present,
+   it POSTs the same wire payload to that host via `fetch`; otherwise it uses the SDK
+   unchanged. `test/resend-intercept.ts` is the local `/emails` server — capture sends
+   + force success/error. **`RESEND_BASE_URL` must come from `.dev.vars`, NOT harness
+   `vars`** (the Astro env layer ignores runtime `vars` — see §6.5 + spike-notes).
+3. **Assert the oracle, not the happy path.** Force a Resend error → assert the route
+   returns 502 **and the `report_sends` table is unchanged** (record-on-success). Seed
+   a forged `pm_email` → assert 400 + no dispatch + no row (recipient integrity). Two
+   sends → assert one row (double-send pre-check + the unique-index backstop). Read
+   rows with a raw count, not via `getSendSummary` (cleaner "exactly one row" oracle).
+   Each case seeds unique-stamped ids and cleans up (cascade from the project row).
+- **Run**: `npm run test:workers`. Full detail: `report-email-send-tests/spike-notes.md`.
+
+**No-leak boundary (risk #4) — internal-field-never-leaks-into-client-output.**
+TBD — see §3 Phase 2 (risk #4 not yet shipped; unit-test the section-builder + token
+resolver field whitelist).
 
 ### 6.4 Adding an e2e test
 
@@ -230,6 +264,25 @@ worked on workerd, where fixtures live.)
   (add `SUPABASE_URL` via `vars` + a local Supabase). Risks #1 and #6 still ride this
   same harness; their oracle research is not yet done. Full detail:
   `context/changes/auth-gate-throttle/spike-notes.md`.
+
+- **2026-06-04 — Phase 2, risk #3 (send path) shipped.** The send-record-gated-on-dispatch
+  oracle as a real-route + real-DB + stubbed-Resend suite (`test/send.workers.test.ts`,
+  9 cases). This slice **built the real-DB layer** risks #1/#6 inherit. Surprises:
+  (1) the route had drifted from the archived S-09 plan — it returns **JSON**
+  (`actionOk`/`actionError`), not `?ok=`/`?error=` redirects (the S-11 async-UX refactor),
+  and has an undocumented **partial-success warning** path (email sent + record fails →
+  200 `warning:true`); research, not the plan, was ground truth. (2) **`unstable_startWorker`
+  `vars` do NOT surface in `astro:env/server`** — that layer resolves from `.dev.vars`,
+  so `SUPABASE_URL`/`RESEND_BASE_URL` belong in `.dev.vars`, not `vars` (this corrects
+  the §4/§6.2 wording the earlier note implied for #1/#6). (3) The Resend SDK freezes its
+  host at module-load and takes no override, so a **behavior-preserving `RESEND_BASE_URL`
+  fetch seam** in `send-report.ts` (prod path uses the SDK unchanged) was needed to point
+  sends at `test/resend-intercept.ts`. (4) Two server guards were **added** here (not just
+  tested): a PM-recipient lookup against `pm_contacts` (forged `pm_email` → 400) and a
+  double-send pre-check + `report_sends` unique-index backstop; the warning path is now
+  race-only and is pinned by the concurrent S6 case. (5) Skip-guard must probe DB
+  **reachability** (`isDbReachable`), not just config presence — a stopped Supabase must
+  skip, not fail. Full detail: `context/changes/report-email-send-tests/spike-notes.md`.
 
 ## 7. What We Deliberately Don't Test
 

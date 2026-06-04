@@ -336,8 +336,8 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Manual
 
-- [ ] 1.6 Dev: normal PM send works; forged `pm_email` → 400 no email; rapid duplicate → one email/row
-- [ ] 1.7 Client send + UI re-send unchanged
+- [x] 1.6 Dev: normal PM send works; forged `pm_email` → 400 no email; rapid duplicate → one email/row
+- [x] 1.7 Client send + UI re-send unchanged
 
 ### Phase 2: Real-DB workers harness + Resend-intercept stub
 
@@ -357,26 +357,26 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Automated
 
-- [x] 3.1 Workers suite green: `npm run test:workers` (S1–S6)
-- [x] 3.2 `npm run build` succeeds before the suite
-- [x] 3.3 S1 asserts zero rows on Resend-error and exactly one on success (record-on-success)
-- [x] 3.4 S5 forged `pm_email` → 400 + zero rows; S6 duplicate → one row + one dispatch
-- [x] 3.5 Plain-Node suite still green + lint + type-check: `npm test` && `npm run lint` && `npx astro check`
+- [x] 3.1 Workers suite green: `npm run test:workers` (S1–S6) — ed1761d
+- [x] 3.2 `npm run build` succeeds before the suite — ed1761d
+- [x] 3.3 S1 asserts zero rows on Resend-error and exactly one on success (record-on-success) — ed1761d
+- [x] 3.4 S5 forged `pm_email` → 400 + zero rows; S6 duplicate → one row + one dispatch — ed1761d
+- [x] 3.5 Plain-Node suite still green + lint + type-check: `npm test` && `npm run lint` && `npx astro check` — ed1761d
 
 #### Manual
 
-- [x] 3.6 Suite leaves no orphan rows on a fresh migrated DB; re-run idempotent
-- [x] 3.7 Reverting a Phase-1 guard makes the matching case fail, then restore
+- [x] 3.6 Suite leaves no orphan rows on a fresh migrated DB; re-run idempotent — ed1761d
+- [x] 3.7 Reverting a Phase-1 guard makes the matching case fail, then restore — ed1761d
 
 ### Phase 4: Cookbook + test-plan sync
 
 #### Automated
 
-- [ ] 4.1 Full suites green: `npm test` and `npm run test:workers`
-- [ ] 4.2 `test-plan.md §6.3` no longer says "TBD — see §3 Phase 2" for the send-path pattern
-- [ ] 4.3 `test-plan.md §3` Phase-2 Status updated for risk #3; §6.5 has a dated note
+- [x] 4.1 Full suites green: `npm test` and `npm run test:workers`
+- [x] 4.2 `test-plan.md §6.3` no longer says "TBD — see §3 Phase 2" for the send-path pattern
+- [x] 4.3 `test-plan.md §3` Phase-2 Status updated for risk #3; §6.5 has a dated note
 
 #### Manual
 
-- [ ] 4.4 A reader can follow §6.3 + §6.2 to add a real-DB send test without this plan
-- [ ] 4.5 `change.md` status is `implemented`
+- [x] 4.4 A reader can follow §6.3 + §6.2 to add a real-DB send test without this plan
+- [x] 4.5 `change.md` status is `implemented`
