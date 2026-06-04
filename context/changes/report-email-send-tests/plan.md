@@ -372,11 +372,11 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Automated
 
-- [x] 4.1 Full suites green: `npm test` and `npm run test:workers`
-- [x] 4.2 `test-plan.md §6.3` no longer says "TBD — see §3 Phase 2" for the send-path pattern
-- [x] 4.3 `test-plan.md §3` Phase-2 Status updated for risk #3; §6.5 has a dated note
+- [x] 4.1 Full suites green: `npm test` and `npm run test:workers` — cab20af
+- [x] 4.2 `test-plan.md §6.3` no longer says "TBD — see §3 Phase 2" for the send-path pattern — cab20af
+- [x] 4.3 `test-plan.md §3` Phase-2 Status updated for risk #3; §6.5 has a dated note — cab20af
 
 #### Manual
 
-- [x] 4.4 A reader can follow §6.3 + §6.2 to add a real-DB send test without this plan
-- [x] 4.5 `change.md` status is `implemented`
+- [x] 4.4 A reader can follow §6.3 + §6.2 to add a real-DB send test without this plan — cab20af
+- [x] 4.5 `change.md` status is `implemented` — cab20af
