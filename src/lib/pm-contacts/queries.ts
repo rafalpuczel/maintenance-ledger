@@ -25,6 +25,17 @@ export async function listContacts(client: Client): Promise<PmContact[]> {
   return data;
 }
 
+// Look up a saved contact by its unique email. The send route uses this to
+// reject a posted pm_email that isn't a real contact (Risk #3 recipient
+// integrity) — the email is the trustworthy join, not the client-supplied id.
+export async function getContactByEmail(client: Client, email: string): Promise<PmContact | null> {
+  const { data, error } = await client.from("pm_contacts").select("*").eq("email", email).maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+}
+
 export async function createContact(client: Client, input: PmContactInput): Promise<PmContact> {
   const { data, error } = await client.from("pm_contacts").insert(input).select("*").single();
   if (error) {

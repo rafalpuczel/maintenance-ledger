@@ -3,9 +3,10 @@ import { createSupabaseClient } from "@/lib/supabase";
 import { getReport } from "@/lib/reports/queries";
 import { getBrand } from "@/lib/brand-settings/queries";
 import { getProjectById } from "@/lib/projects/queries";
+import { getContactByEmail } from "@/lib/pm-contacts/queries";
 import { getEmailTemplates } from "@/lib/email-templates/queries";
 import { sendReportEmail } from "@/lib/email/send-report";
-import { recordSend } from "@/lib/report-sends/queries";
+import { recordSend, hasRecentSend } from "@/lib/report-sends/queries";
 import { recipientTypeSchema } from "@/lib/report-sends/schema";
 import { actionOk, actionError } from "@/lib/ui/response";
 
@@ -51,9 +52,23 @@ export const POST: APIRoute = async (context) => {
     if (!pmEmail) {
       return actionError({ error: "Pick a PM to send to" });
     }
-    to = pmEmail;
-    const rawContactId = (form.get("pm_contact_id") as string | null)?.trim() ?? "";
-    pmContactId = rawContactId === "" ? null : rawContactId;
+    // Recipient integrity (Risk #3): the posted email must be a real saved
+    // contact, not arbitrary client input. Key on the unique pm_contacts.email,
+    // and take the contact id from the lookup — never trust the posted id.
+    const contact = await getContactByEmail(client, pmEmail);
+    if (!contact) {
+      return actionError({ error: "Unknown PM contact" });
+    }
+    to = contact.email;
+    pmContactId = contact.id;
+  }
+
+  // Double-send guard (Risk #3): reject an identical send already made this
+  // minute BEFORE dispatching, so a double-click can't fire a second email. The
+  // report_sends_dedup_idx unique index is the race-proof backstop for a true
+  // concurrent double-submit (its 23505 lands in the record catch below).
+  if (await hasRecentSend(client, id, to)) {
+    return actionError({ error: "Already sent just now — re-send is blocked for a moment" });
   }
 
   // Dispatch first; only record on success (US-01).

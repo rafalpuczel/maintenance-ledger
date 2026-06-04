@@ -53,6 +53,35 @@ export async function recordSend(client: Client, input: SendRecordInput): Promis
   }
 }
 
+// Postgres unique_violation — the report_sends_dedup_idx backstop fired (a
+// concurrent double-submit). Surfaced as a string so the route can distinguish
+// it from a generic insert error.
+export const SEND_DEDUP_VIOLATION = "23505";
+
+// True when an identical (report + recipient) send already landed in the current
+// UTC-minute bucket — the same bucket report_sends_dedup_idx enforces. The route
+// calls this BEFORE dispatch so a double-click is rejected without firing a
+// second email; the unique index is the race-proof backstop for the concurrent
+// case this pre-check can't see.
+export async function hasRecentSend(client: Client, reportId: string, recipientEmail: string): Promise<boolean> {
+  // Start of the current UTC minute, matching date_trunc('minute', ... at utc).
+  const now = new Date();
+  const bucketStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes()),
+  ).toISOString();
+  const { data, error } = await client
+    .from("report_sends")
+    .select("id")
+    .eq("report_id", reportId)
+    .eq("recipient_email", recipientEmail)
+    .gte("sent_at", bucketStart)
+    .limit(1);
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data.length > 0;
+}
+
 // Latest-per-recipient summary for one report, for the report page (FR-021).
 export async function getSendSummary(client: Client, reportId: string): Promise<SendSummary> {
   const { data, error } = await client
