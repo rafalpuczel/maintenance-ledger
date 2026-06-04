@@ -11,6 +11,9 @@ export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
   adapter: cloudflare(),
+  // The dev toolbar overlays the page and intercepts pointer events, blocking
+  // Playwright clicks on real controls. Off in dev (prod builds never include it).
+  devToolbar: { enabled: false },
   vite: {
     plugins: [tailwindcss()],
     resolve: {
@@ -18,6 +21,12 @@ export default defineConfig({
       // sonner's <Toaster> island can bind to a different React copy than the
       // renderer, triggering "Invalid hook call".
       dedupe: ["react", "react-dom"],
+    },
+    // dedupe alone doesn't stop Vite's dev SSR optimizer from pre-bundling
+    // react/react-dom into mismatched-hash chunks (the recurring dev-only
+    // "Cannot read useState of null"). Keep them as the single on-disk module.
+    ssr: {
+      noExternal: ["react", "react-dom"],
     },
   },
   env: {

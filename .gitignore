@@ -31,3 +31,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+auth.json
+
+# playwright
+playwright/.auth/
+.playwright-cli/
+test-results/
+playwright-report/
