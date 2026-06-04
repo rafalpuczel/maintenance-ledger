@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { RESEND_API_KEY, REPORT_FROM_EMAIL } from "astro:env/server";
+import { RESEND_API_KEY, REPORT_FROM_EMAIL, RESEND_BASE_URL } from "astro:env/server";
 import type { Report } from "@/lib/reports/queries";
 import type { Brand } from "@/lib/brand-settings/queries";
 import type { Project } from "@/lib/projects/queries";
@@ -68,14 +68,33 @@ export async function sendReportEmail({
   };
   const { subject, html } = renderTemplate({ templates, recipientType, ctx });
 
-  const resend = new Resend(RESEND_API_KEY);
-  const { error } = await resend.emails.send({
+  const payload = {
     from: REPORT_FROM_EMAIL ?? FALLBACK_FROM,
     to,
     subject,
     html,
     attachments: [{ filename, content: bytesToBase64(pdf) }],
-  });
+  };
+
+  // Test seam: when RESEND_BASE_URL is set (only the workerd integration suite
+  // does this), POST the same wire payload the Resend SDK would to the local
+  // intercept instead of api.resend.com — the SDK freezes its host from
+  // process.env at module-load, so it can't be redirected at call time. In
+  // production this var is unset and the SDK path below runs byte-identically.
+  if (RESEND_BASE_URL) {
+    const response = await fetch(`${RESEND_BASE_URL}/emails`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`Resend send failed: ${response.status}`);
+    }
+    return;
+  }
+
+  const resend = new Resend(RESEND_API_KEY);
+  const { error } = await resend.emails.send(payload);
   if (error) {
     throw new Error(error.message);
   }

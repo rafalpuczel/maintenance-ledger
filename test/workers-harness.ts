@@ -20,10 +20,22 @@
 // missing/stale dist makes the boot fail with "entry-point file ... was not found".
 // Project-root `.dev.vars` is picked up automatically, so the auth secrets
 // (SHARED_USERNAME / SHARED_PASSWORD_HASH / SHARED_PASSWORD_PEPPER /
-// SESSION_HMAC_KEY) need no separate seeding. KV `SESSION` is Miniflare-simulated
-// locally. Risks #1/#6 extend this by passing extra `vars` (e.g. SUPABASE_URL).
+// SESSION_HMAC_KEY) and SUPABASE_URL / SUPABASE_SECRET_KEY need no separate
+// seeding. KV `SESSION` is Miniflare-simulated locally.
+//
+// IMPORTANT (spike notes, finding #2): `unstable_startWorker({ vars })` does NOT
+// surface a var into `astro:env/server` — the Astro env layer reads `.dev.vars` /
+// build-time, not runtime vars. So anything the WORKER must read (e.g.
+// RESEND_BASE_URL for the send suite's Resend intercept) belongs in `.dev.vars`,
+// not in `vars`. The send suite requires this line in `.dev.vars`:
+//     RESEND_BASE_URL=http://127.0.0.1:54399
+// (gitignored, test-only, MUST be unset in production — the send-report.ts seam
+// falls back to the real Resend SDK when it is absent). The `vars` option below
+// remains for genuinely-new workerd bindings that don't flow through Astro env.
 
 import { unstable_startWorker } from "wrangler";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types";
 
 // The adapter-generated config — NOT the root wrangler.jsonc. See the spike notes.
 const GENERATED_CONFIG = "dist/server/wrangler.json";
@@ -48,6 +60,40 @@ export interface StartWorkerOptions {
   // Extra/overriding bindings injected as worker `vars` (e.g. SUPABASE_URL for
   // risks #1/#6). The auth secrets already come from .dev.vars.
   vars?: Record<string, string>;
+}
+
+// Test-side admin Supabase client for the real-DB layer (risks #1/#3/#6). The
+// worker itself reaches local Supabase via .dev.vars (SUPABASE_URL /
+// SUPABASE_SECRET_KEY auto-load on boot — no harness wiring needed); this client
+// is for the TEST process to seed fixtures, count rows, and clean up over the same
+// HTTP/PostgREST boundary (never `pg`, per CLAUDE.md). Reads the same secrets from
+// process.env (loaded by test/load-dev-vars.ts). Returns null when they are absent
+// (CI without local Supabase) so callers can `it.skipIf` instead of crashing.
+export function createAdminClient(): SupabaseClient<Database> | null {
+  const env = process.env as Record<string, string | undefined>;
+  const url = env.SUPABASE_URL;
+  const key = env.SUPABASE_SECRET_KEY;
+  if (!url || !key) {
+    return null;
+  }
+  return createClient<Database>(url, key, { auth: { persistSession: false } });
+}
+
+// Reachability probe — config presence (createAdminClient !== null) only proves the
+// secrets are SET, not that the DB is RUNNING. The send suite must skip (not fail)
+// when local Supabase is stopped, so callers await this at module scope and feed
+// the result into `describe.skipIf`. A trivial head-count select; any error (dead
+// host, bad key) → false. Returns false for a null client.
+export async function isDbReachable(client: SupabaseClient<Database> | null): Promise<boolean> {
+  if (!client) {
+    return false;
+  }
+  try {
+    const { error } = await client.from("report_sends").select("id", { count: "exact", head: true });
+    return !error;
+  } catch {
+    return false;
+  }
 }
 
 export async function startTestWorker(options: StartWorkerOptions = {}): Promise<WorkerHarness> {

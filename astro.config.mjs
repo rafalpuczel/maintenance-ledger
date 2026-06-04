@@ -39,6 +39,10 @@ export default defineConfig({
       SESSION_HMAC_KEY: envField.string({ context: "server", access: "secret" }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       REPORT_FROM_EMAIL: envField.string({ context: "server", access: "secret", optional: true }),
+      // Test-only override for the Resend API host. Unset in production (the SDK
+      // hits api.resend.com); the workerd integration suite sets it to a local
+      // intercept so sends never touch the network. See send-report.ts.
+      RESEND_BASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 });

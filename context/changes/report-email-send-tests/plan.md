@@ -328,11 +328,11 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Automated
 
-- [x] 1.1 Migration applies locally: `supabase migration up --local`
-- [x] 1.2 Types regenerate clean and typecheck: `npx astro check` (exit 0)
-- [x] 1.3 Lint passes: `npm run lint` (exit 0)
-- [x] 1.4 Build passes: `npm run build` (exit 0)
-- [x] 1.5 Plain-Node suite still green: `npm test`
+- [x] 1.1 Migration applies locally: `supabase migration up --local` — 96beb90
+- [x] 1.2 Types regenerate clean and typecheck: `npx astro check` (exit 0) — 96beb90
+- [x] 1.3 Lint passes: `npm run lint` (exit 0) — 96beb90
+- [x] 1.4 Build passes: `npm run build` (exit 0) — 96beb90
+- [x] 1.5 Plain-Node suite still green: `npm test` — 96beb90
 
 #### Manual
 
@@ -343,9 +343,9 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Automated
 
-- [ ] 2.1 Scratch harness boot inserts+reads+cleans one `report_sends` row (DB wiring proven)
-- [ ] 2.2 Resend stub drives a forced success and a forced error through the real route (intercept proven)
-- [ ] 2.3 Lint + type-check pass on harness/spike files: `npm run lint` && `npx astro check` (exit 0)
+- [x] 2.1 Scratch harness boot inserts+reads+cleans one `report_sends` row (DB wiring proven)
+- [x] 2.2 Resend stub drives a forced success and a forced error through the real route (intercept proven)
+- [x] 2.3 Lint + type-check pass on harness/spike files: `npm run lint` && `npx astro check` (exit 0)
 
 #### Manual
 
