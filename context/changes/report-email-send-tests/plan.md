@@ -343,30 +343,30 @@ One additive migration (`report_sends` dedup unique constraint/column); no exist
 
 #### Automated
 
-- [x] 2.1 Scratch harness boot inserts+reads+cleans one `report_sends` row (DB wiring proven)
-- [x] 2.2 Resend stub drives a forced success and a forced error through the real route (intercept proven)
-- [x] 2.3 Lint + type-check pass on harness/spike files: `npm run lint` && `npx astro check` (exit 0)
+- [x] 2.1 Scratch harness boot inserts+reads+cleans one `report_sends` row (DB wiring proven) — 566b670
+- [x] 2.2 Resend stub drives a forced success and a forced error through the real route (intercept proven) — 566b670
+- [x] 2.3 Lint + type-check pass on harness/spike files: `npm run lint` && `npx astro check` (exit 0) — 566b670
 
 #### Manual
 
-- [ ] 2.4 `spike-notes.md` records the Resend-intercept verdict + working config + gotchas
-- [ ] 2.5 Supabase down → DB-dependent cases skip (not error); up + migrated → they run
-- [ ] 2.6 Any production seam for the stub is behavior-preserving; any dep installed only after approval
+- [x] 2.4 `spike-notes.md` records the Resend-intercept verdict + working config + gotchas — 566b670
+- [x] 2.5 Supabase down → DB-dependent cases skip (not error); up + migrated → they run — 566b670
+- [x] 2.6 Any production seam for the stub is behavior-preserving; any dep installed only after approval — 566b670
 
 ### Phase 3: Send-path route integration suite (S1–S6)
 
 #### Automated
 
-- [ ] 3.1 Workers suite green: `npm run test:workers` (S1–S6)
-- [ ] 3.2 `npm run build` succeeds before the suite
-- [ ] 3.3 S1 asserts zero rows on Resend-error and exactly one on success (record-on-success)
-- [ ] 3.4 S5 forged `pm_email` → 400 + zero rows; S6 duplicate → one row + one dispatch
-- [ ] 3.5 Plain-Node suite still green + lint + type-check: `npm test` && `npm run lint` && `npx astro check`
+- [x] 3.1 Workers suite green: `npm run test:workers` (S1–S6)
+- [x] 3.2 `npm run build` succeeds before the suite
+- [x] 3.3 S1 asserts zero rows on Resend-error and exactly one on success (record-on-success)
+- [x] 3.4 S5 forged `pm_email` → 400 + zero rows; S6 duplicate → one row + one dispatch
+- [x] 3.5 Plain-Node suite still green + lint + type-check: `npm test` && `npm run lint` && `npx astro check`
 
 #### Manual
 
-- [ ] 3.6 Suite leaves no orphan rows on a fresh migrated DB; re-run idempotent
-- [ ] 3.7 Reverting a Phase-1 guard makes the matching case fail, then restore
+- [x] 3.6 Suite leaves no orphan rows on a fresh migrated DB; re-run idempotent
+- [x] 3.7 Reverting a Phase-1 guard makes the matching case fail, then restore
 
 ### Phase 4: Cookbook + test-plan sync
 

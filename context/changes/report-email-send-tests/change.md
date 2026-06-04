@@ -4,7 +4,7 @@ title: "Test rollout Phase 2 (Risk #3): send-path dispatch→record + recipient 
 status: implementing
 created: 2026-06-04
 updated: 2026-06-04
-last_phase: 1
+last_phase: 2
 archived_at: null
 ---
 
