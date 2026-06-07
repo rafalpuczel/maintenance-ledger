@@ -3,7 +3,7 @@ import { slugify } from "./slug";
 
 describe("slugify", () => {
   it("lowercases and hyphenates spaces", () => {
-    expect(slugify("Acme Web Shop")).toBe("acme-web-shop");
+    expect(slugify("Acme Web Shop")).toBe("DELIBERATELY-WRONG-ci-gate-proof");
   });
 
   it("strips accents", () => {
