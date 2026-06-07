@@ -11,7 +11,7 @@ post_mvp_round:
   prd_version: 2
   main_goal: quality
   top_blocker: none
-  slices: [S-10, S-11, S-12, S-13]
+  slices: [S-10, S-11, S-12, S-13, S-14]
 ---
 
 # Roadmap: Maintenance Ledger
@@ -49,6 +49,7 @@ Maintenance reports for client WordPress retainers are produced today through a 
 | S-11  | async-ux                   | act without full-page reloads — async submits, optimistic UI, spinners, toasts, confirm dialogs | S-10           | v2 US-03                                       | done     |
 | S-12  | pdf-inline-view            | open the report PDF in the browser (new tab) instead of forcing a download | S-09 (shipped MVP) | v2 US-05                            | done     |
 | S-13  | email-templates            | edit separate PM + client email subject/body with placeholders | S-09 (shipped MVP)     | v2 US-06                                       | ready    |
+| S-14  | ci-test-gate               | (infra) every push/PR runs the test suite in CI, not just lint+build | S-09 (shipped MVP) | Cert criterion #6 (CI verifies quality automatically) | ready    |
 
 ## Streams
 
@@ -268,6 +269,20 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Risk:** Adds one global settings table following the established S-01 data-access pattern (`src/lib/email-templates/{queries,schema,form}.ts` + an Astro `.ts` settings route + a settings page mirroring brand-settings), and swaps `send-report.ts`'s hardcoded literals for stored-template interpolation with a fallback. The load-bearing guardrail is the no-leak NFR — the client template must not become a vector for internal-only fields, enforced by restricting the token whitelist. Dispatch mechanism and PDF attachment are unchanged. Independent of the redesign; ship any time.
 - **Status:** ready
 
+### S-14: CI test gate
+
+- **Outcome:** every push to `master` and every pull request runs the project's automated test suite in CI — not just `lint` + `build` as today — so a regression that breaks a test fails the pipeline instead of shipping. The ~93 tests that already exist (vitest unit + Playwright e2e + workers integration) stop being green-but-unenforced.
+- **Change ID:** ci-test-gate
+- **PRD refs:** none (not a product/user-story slice — this is infra hardening). Driver: 10xBuilder certificate criterion #6 ("Pipeline CI/CD — building the app and verifying quality automatically"), which the build+lint-only `ci.yml` meets only weakly while a real test suite sits unrun.
+- **Prerequisites:** S-09 (the shipped MVP, whose features the tests cover) — and the test suite itself, which already exists (`vitest.config.ts`, `vitest.workers.config.ts`, `playwright.config.ts`, `e2e/`, `test/`).
+- **Parallel with:** S-13 (independent — this touches only `.github/workflows/ci.yml` and possibly `package.json` scripts; S-13 touches the email-template surface).
+- **Blockers:** —
+- **Unknowns:**
+  - **Which test tiers run in CI.** `npm test` (vitest unit, `src/**/*.test.ts`) needs no external services and is the certain win. `test:workers` and the Playwright e2e suite both need a live Supabase host + secrets (and e2e needs a running app), so wiring those into CI means provisioning GitHub Actions secrets / a test DB. Owner: user/planner. Block: no — the unit tier alone satisfies criterion #6; the workers/e2e tiers are a stretch goal pinned in `/10x-plan`.
+  - **Whether to also add typecheck (`astro check`) to the same job.** `@astrojs/check` is installed but never run in CI. Cheap to add alongside tests; in scope for "verify quality automatically." Owner: planner. Block: no.
+- **Risk:** Small, isolated change — a step (or two) added to the existing `ci` job in `.github/workflows/ci.yml`, after `lint`/`build`. The only real hazard is wiring a tier that needs secrets (`test:workers` / e2e) and having it fail or flake in CI for environment reasons rather than real regressions — so default to the dependency-free unit tier first and gate the secret-dependent tiers behind a deliberate decision. Does not touch app code; the deploy mechanism (Workers Builds auto-deploy on push) is unchanged.
+- **Status:** ready
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                  | Suggested issue title                                          | Ready for `/10x-plan` | Notes |
@@ -287,6 +302,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | S-11       | async-ux                   | Async actions + spinners + toasts + confirms (no optimistic UI — see Done note) | done    | Archived 2026-05-31 → `context/archive/2026-05-31-async-ux/`. |
 | S-12       | pdf-inline-view            | Open report PDF in browser (new tab) + keep download          | done                  | Implemented 2026-05-30 (`76a32e0`); archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`. |
 | S-13       | email-templates            | Editable per-recipient (PM/client) email subject/body + placeholders | yes            | Independent; adds one settings table (S-01 data pattern). |
+| S-14       | ci-test-gate               | Run the test suite in CI (not just lint+build)                | yes                   | Infra/cert (criterion #6). Run `/10x-plan ci-test-gate`. Touches only `ci.yml` (+ maybe `package.json`). |
 
 ## Open Roadmap Questions
 
