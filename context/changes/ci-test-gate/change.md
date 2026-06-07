@@ -1,7 +1,7 @@
 ---
 change_id: ci-test-gate
 title: Run the test suite in CI, not just lint + build
-status: implementing
+status: implemented
 created: 2026-06-07
 updated: 2026-06-07
 archived_at: null

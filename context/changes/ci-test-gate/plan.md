@@ -111,12 +111,12 @@ None. No data, schema, or app-code changes. Reverting is deleting the two added 
 
 #### Automated
 
-- [x] 1.1 Workflow is valid YAML; `ci` job has both new steps in order (astro check before npm test, both after build)
-- [x] 1.2 Local `npx astro check` exits 0
-- [x] 1.3 Local `npm test` exits 0
-- [ ] 1.4 Branch CI run shows astro check + test steps passing
+- [x] 1.1 Workflow is valid YAML; `ci` job has both new steps in order (astro check before npm test, both after build) — cf59acf
+- [x] 1.2 Local `npx astro check` exits 0 — cf59acf
+- [x] 1.3 Local `npm test` exits 0 — cf59acf
+- [x] 1.4 Branch CI run shows astro check + test steps passing
 
 #### Manual
 
-- [ ] 1.5 Break a unit test on a throwaway branch → CI goes red on the test step → revert
-- [ ] 1.6 Deploy behavior unchanged — Workers Builds still auto-deploys; this workflow does not deploy
+- [x] 1.5 Break a unit test on a throwaway branch → CI goes red on the test step → revert
+- [x] 1.6 Deploy behavior unchanged — Workers Builds still auto-deploys; this workflow does not deploy
