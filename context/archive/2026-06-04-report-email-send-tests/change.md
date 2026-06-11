@@ -1,11 +1,11 @@
 ---
 change_id: report-email-send-tests
 title: "Test rollout Phase 2 (Risk #3): send-path dispatch→record + recipient integrity"
-status: implemented
+status: archived
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-11
 last_phase: 4
-archived_at: null
+archived_at: 2026-06-11T14:37:52Z
 ---
 
 ## Notes
