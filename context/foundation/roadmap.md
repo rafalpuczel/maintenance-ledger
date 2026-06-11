@@ -3,7 +3,7 @@ project: "Maintenance Ledger"
 version: 2
 status: active
 created: 2026-05-25
-updated: 2026-05-31
+updated: 2026-06-11
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -48,8 +48,8 @@ Maintenance reports for client WordPress retainers are produced today through a 
 | S-10  | frontend-redesign          | use a redesigned, light-themed, responsive, accessible app with a shared header + real dashboard (post-MVP north star) | S-09 (shipped MVP) | v2 US-01, US-02, US-04 | done     |
 | S-11  | async-ux                   | act without full-page reloads — async submits, optimistic UI, spinners, toasts, confirm dialogs | S-10           | v2 US-03                                       | done     |
 | S-12  | pdf-inline-view            | open the report PDF in the browser (new tab) instead of forcing a download | S-09 (shipped MVP) | v2 US-05                            | done     |
-| S-13  | email-templates            | edit separate PM + client email subject/body with placeholders | S-09 (shipped MVP)     | v2 US-06                                       | ready    |
-| S-14  | ci-test-gate               | (infra) every push/PR runs the test suite in CI, not just lint+build | S-09 (shipped MVP) | Cert criterion #6 (CI verifies quality automatically) | ready    |
+| S-13  | email-templates            | edit separate PM + client email subject/body with placeholders | S-09 (shipped MVP)     | v2 US-06                                       | done     |
+| S-14  | ci-test-gate               | (infra) every push/PR runs the test suite in CI, not just lint+build | S-09 (shipped MVP) | Cert criterion #6 (CI verifies quality automatically) | done     |
 
 ## Streams
 
@@ -267,7 +267,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Unknowns:**
   - Final placeholder token set — Owner: user. Block: no (a default set ships; additions are cheap). Constraint already fixed: tokens restricted to non-leaky fields so the client template cannot surface internal notes or the internal contact email.
 - **Risk:** Adds one global settings table following the established S-01 data-access pattern (`src/lib/email-templates/{queries,schema,form}.ts` + an Astro `.ts` settings route + a settings page mirroring brand-settings), and swaps `send-report.ts`'s hardcoded literals for stored-template interpolation with a fallback. The load-bearing guardrail is the no-leak NFR — the client template must not become a vector for internal-only fields, enforced by restricting the token whitelist. Dispatch mechanism and PDF attachment are unchanged. Independent of the redesign; ship any time.
-- **Status:** ready
+- **Status:** done
 
 ### S-14: CI test gate
 
@@ -281,7 +281,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
   - **Which test tiers run in CI.** `npm test` (vitest unit, `src/**/*.test.ts`) needs no external services and is the certain win. `test:workers` and the Playwright e2e suite both need a live Supabase host + secrets (and e2e needs a running app), so wiring those into CI means provisioning GitHub Actions secrets / a test DB. Owner: user/planner. Block: no — the unit tier alone satisfies criterion #6; the workers/e2e tiers are a stretch goal pinned in `/10x-plan`.
   - **Whether to also add typecheck (`astro check`) to the same job.** `@astrojs/check` is installed but never run in CI. Cheap to add alongside tests; in scope for "verify quality automatically." Owner: planner. Block: no.
 - **Risk:** Small, isolated change — a step (or two) added to the existing `ci` job in `.github/workflows/ci.yml`, after `lint`/`build`. The only real hazard is wiring a tier that needs secrets (`test:workers` / e2e) and having it fail or flake in CI for environment reasons rather than real regressions — so default to the dependency-free unit tier first and gate the secret-dependent tiers behind a deliberate decision. Does not touch app code; the deploy mechanism (Workers Builds auto-deploy on push) is unchanged.
-- **Status:** ready
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -301,8 +301,8 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 | S-10       | frontend-redesign          | Frontend redesign + shared shell + dashboard + responsive + WCAG-AA | done            | Archived 2026-05-31 → `context/archive/2026-05-31-frontend-redesign/`. |
 | S-11       | async-ux                   | Async actions + spinners + toasts + confirms (no optimistic UI — see Done note) | done    | Archived 2026-05-31 → `context/archive/2026-05-31-async-ux/`. |
 | S-12       | pdf-inline-view            | Open report PDF in browser (new tab) + keep download          | done                  | Implemented 2026-05-30 (`76a32e0`); archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`. |
-| S-13       | email-templates            | Editable per-recipient (PM/client) email subject/body + placeholders | yes            | Independent; adds one settings table (S-01 data pattern). |
-| S-14       | ci-test-gate               | Run the test suite in CI (not just lint+build)                | yes                   | Infra/cert (criterion #6). Run `/10x-plan ci-test-gate`. Touches only `ci.yml` (+ maybe `package.json`). |
+| S-13       | email-templates            | Editable per-recipient (PM/client) email subject/body + placeholders | done            | Archived 2026-06-11 → `context/archive/2026-05-31-email-templates/`. |
+| S-14       | ci-test-gate               | Run the test suite in CI (not just lint+build)                | done                  | Archived 2026-06-11 → `context/archive/2026-06-07-ci-test-gate/`. |
 
 ## Open Roadmap Questions
 
@@ -351,3 +351,5 @@ Lifted from PRD `## Non-Goals` — explicitly out of MVP scope (post-MVP unless 
 - **S-10: user works in a redesigned app — shared header/nav on every authenticated page, a real work dashboard at home, a light professional B2B theme, wider content, nicer forms, button tooltips, polished empty states + loading skeletons, full responsive layout, and a WCAG-AA accessibility pass** — Archived 2026-05-31 → `context/archive/2026-05-31-frontend-redesign/`. Lesson: —.
 - **S-11: user performs every create/edit/delete/send without a full-page white-flash reload — async in-place submits, in-progress spinners, toasts replacing the `?ok=`/`?error=` banners, and a consistent destructive-confirm dialog; a UX-recommendations doc shipped with it** — Archived 2026-05-31 → `context/archive/2026-05-31-async-ux/`. Lesson: shipped WITHOUT optimistic UI/rollback — a deliberate, user-approved deviation from US-03's "reflects immediately/rolls back" wording (spinner-then-update instead, no false-success risk); routes went JSON-only; full-SPA cross-route nav uses Astro `<ClientRouter/>` + `resolve.dedupe(["react","react-dom"])` to avoid duplicate-React "Invalid hook call"; sonner needs its `dist/styles.css` imported.
 - **S-12: user clicks "View PDF" and the report's PDF opens inline in a new browser tab instead of forcing a file download (save left to the viewer's control; email attachment unchanged)** — Archived 2026-05-31 → `context/archive/2026-05-30-pdf-inline-view/`. Lesson: —.
+- **S-13: user opens an email-configuration settings page and edits two independent templates (PM + client) — editable subject + body with a vetted placeholder set resolved at send time, falling back to the hardcoded copy when no template is saved** — Archived 2026-06-11 → `context/archive/2026-05-31-email-templates/`. Lesson: —.
+- **S-14: every push to `master` and every pull request runs the project's automated test suite in CI (typecheck + vitest unit), not just lint + build, so a regression that breaks a test fails the pipeline** — Archived 2026-06-11 → `context/archive/2026-06-07-ci-test-gate/`. Lesson: —.
