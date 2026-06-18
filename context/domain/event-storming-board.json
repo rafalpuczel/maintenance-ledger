@@ -1,0 +1,382 @@
+{
+  "title": "Event Storming — Projekt → Raport → Wysyłka",
+  "phase": "aggregates",
+  "items": [
+    {
+      "id": "lbl-1",
+      "role": "label",
+      "text": "① Projekt (setup)",
+      "x": 200,
+      "y": 250,
+      "fontSize": 18
+    },
+    {
+      "id": "lbl-2",
+      "role": "label",
+      "text": "② Raport + PDF",
+      "x": 1160,
+      "y": 250,
+      "fontSize": 18
+    },
+    {
+      "id": "lbl-3",
+      "role": "label",
+      "text": "③ Wysyłka emailem",
+      "x": 2300,
+      "y": 250,
+      "fontSize": 18
+    },
+    {
+      "id": "act-1",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 200,
+      "y": 92
+    },
+    {
+      "id": "act-2",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 390,
+      "y": 92
+    },
+    {
+      "id": "act-3",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 580,
+      "y": 92
+    },
+    {
+      "id": "act-4",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 770,
+      "y": 92
+    },
+    {
+      "id": "act-5",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 960,
+      "y": 92
+    },
+    {
+      "id": "act-6",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 1160,
+      "y": 92
+    },
+    {
+      "id": "act-7",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 1350,
+      "y": 92
+    },
+    {
+      "id": "act-8",
+      "role": "actor",
+      "text": "System",
+      "x": 1540,
+      "y": 92
+    },
+    {
+      "id": "act-9",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 1730,
+      "y": 92
+    },
+    {
+      "id": "act-10",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 2300,
+      "y": 92
+    },
+    {
+      "id": "act-11",
+      "role": "actor",
+      "text": "Operator agencji",
+      "x": 2490,
+      "y": 92
+    },
+    {
+      "id": "act-12",
+      "role": "actor",
+      "text": "System",
+      "x": 2680,
+      "y": 92
+    },
+    {
+      "id": "cmd-1",
+      "role": "command",
+      "text": "Utwórz projekt",
+      "x": 200,
+      "y": 200
+    },
+    {
+      "id": "cmd-2",
+      "role": "command",
+      "text": "Ustaw markę",
+      "x": 390,
+      "y": 200
+    },
+    {
+      "id": "cmd-3",
+      "role": "command",
+      "text": "Dodaj kontakt PM",
+      "x": 580,
+      "y": 200
+    },
+    {
+      "id": "cmd-4",
+      "role": "command",
+      "text": "Przypisz plugin cykliczny",
+      "x": 770,
+      "y": 200
+    },
+    {
+      "id": "cmd-5",
+      "role": "command",
+      "text": "Zapisz szablony e-mail",
+      "x": 960,
+      "y": 200
+    },
+    {
+      "id": "cmd-6",
+      "role": "command",
+      "text": "Utwórz raport",
+      "x": 1160,
+      "y": 200
+    },
+    {
+      "id": "cmd-7",
+      "role": "command",
+      "text": "Zapisz raport",
+      "x": 1350,
+      "y": 200
+    },
+    {
+      "id": "cmd-8",
+      "role": "command",
+      "text": "Renderuj PDF (on-save)",
+      "x": 1540,
+      "y": 200
+    },
+    {
+      "id": "cmd-9",
+      "role": "command",
+      "text": "Pobierz / wyświetl PDF",
+      "x": 1730,
+      "y": 200
+    },
+    {
+      "id": "cmd-10",
+      "role": "command",
+      "text": "Wyślij raport (PM / klient)",
+      "x": 2300,
+      "y": 200
+    },
+    {
+      "id": "cmd-11",
+      "role": "command",
+      "text": "Wyślij e-mail z PDF",
+      "x": 2490,
+      "y": 200
+    },
+    {
+      "id": "evt-1",
+      "role": "event",
+      "text": "Projekt utworzony",
+      "x": 200,
+      "y": 330
+    },
+    {
+      "id": "evt-2",
+      "role": "event",
+      "text": "Marka skonfigurowana (logo + kolory)",
+      "x": 390,
+      "y": 330
+    },
+    {
+      "id": "evt-3",
+      "role": "event",
+      "text": "Kontakt PM dodany",
+      "x": 580,
+      "y": 330
+    },
+    {
+      "id": "evt-4",
+      "role": "event",
+      "text": "Plugin cykliczny przypisany do projektu",
+      "x": 770,
+      "y": 330
+    },
+    {
+      "id": "evt-5",
+      "role": "event",
+      "text": "Szablony e-mail skonfigurowane",
+      "x": 960,
+      "y": 330
+    },
+    {
+      "id": "evt-6",
+      "role": "event",
+      "text": "Raport utworzony (miesiąc zamrożony)",
+      "x": 1160,
+      "y": 330
+    },
+    {
+      "id": "evt-7",
+      "role": "event",
+      "text": "Raport zapisany",
+      "x": 1350,
+      "y": 330
+    },
+    {
+      "id": "evt-8",
+      "role": "event",
+      "text": "Plugin dopisany do katalogu",
+      "x": 1350,
+      "y": 430
+    },
+    {
+      "id": "evt-9",
+      "role": "event",
+      "text": "PDF wyrenderowany",
+      "x": 1540,
+      "y": 330
+    },
+    {
+      "id": "evt-10",
+      "role": "event",
+      "text": "Render PDF nieudany (zapis przetrwał)",
+      "x": 1540,
+      "y": 430
+    },
+    {
+      "id": "evt-11",
+      "role": "event",
+      "text": "PDF pobrany / wyświetlony",
+      "x": 1730,
+      "y": 330
+    },
+    {
+      "id": "evt-12",
+      "role": "event",
+      "text": "Odbiorca rozstrzygnięty (PM / klient)",
+      "x": 2300,
+      "y": 330
+    },
+    {
+      "id": "evt-13",
+      "role": "event",
+      "text": "Odbiorca nieznany — wysyłka odrzucona",
+      "x": 2300,
+      "y": 430
+    },
+    {
+      "id": "evt-14",
+      "role": "event",
+      "text": "E-mail z raportem wysłany",
+      "x": 2490,
+      "y": 330
+    },
+    {
+      "id": "evt-15",
+      "role": "event",
+      "text": "Wysyłka nieudana (Resend) — brak wpisu",
+      "x": 2490,
+      "y": 430
+    },
+    {
+      "id": "evt-16",
+      "role": "event",
+      "text": "Wysyłka zarejestrowana",
+      "x": 2680,
+      "y": 330
+    },
+    { "id": "rm-1", "role": "readmodel", "text": "Lista zapisanych kontaktów PM", "x": 2300, "y": 458 },
+    { "id": "rm-2", "role": "readmodel", "text": "Podgląd PDF raportu", "x": 1730, "y": 458 },
+    { "id": "rm-3", "role": "readmodel", "text": "Historia wysyłek raportu", "x": 2680, "y": 458 },
+    { "id": "rm-4", "role": "readmodel", "text": "Katalog pluginów (podpowiedzi)", "x": 1160, "y": 458 },
+
+    { "id": "pol-1", "role": "policy", "text": "Zawsze gdy raport zapisany → renderuj PDF (on-save)", "x": 1450, "y": 586 },
+    { "id": "pol-2", "role": "policy", "text": "Zawsze gdy plugin zapisany w raporcie → dopisz do katalogu", "x": 1160, "y": 586 },
+    { "id": "pol-3", "role": "policy", "text": "Zawsze gdy e-mail wysłany → zapisz wpis w historii", "x": 2585, "y": 586 },
+    { "id": "pol-4", "role": "policy", "text": "Zawsze przed wysyłką → zwaliduj odbiorcę i sprawdź double-send", "x": 2300, "y": 586 },
+
+    { "id": "ext-1", "role": "external", "text": "Resend (dostawca e-mail)", "x": 2490, "y": 716 },
+    { "id": "ext-2", "role": "external", "text": "Supabase (PostgREST)", "x": 200, "y": 716 },
+
+    { "id": "agg-1", "role": "aggregate", "text": "Projekt", "x": 200, "y": 520 },
+    { "id": "agg-2", "role": "aggregate", "text": "Ustawienia agencji (marka + szablony)", "x": 580, "y": 520 },
+    { "id": "agg-3", "role": "aggregate", "text": "Raport", "x": 1255, "y": 520 },
+    { "id": "agg-4", "role": "aggregate", "text": "WydanyRaport (PDF + wysyłka + historia)", "x": 2490, "y": 520 },
+
+    { "id": "bc-1", "role": "label", "text": "▢ Kontekst: Konfiguracja agencji", "x": 200, "y": 40, "fontSize": 15 },
+    { "id": "bc-2", "role": "label", "text": "▢ Kontekst: Autorstwo raportu", "x": 1160, "y": 40, "fontSize": 15 },
+    { "id": "bc-3", "role": "label", "text": "▢ Kontekst: Dystrybucja raportu", "x": 2300, "y": 40, "fontSize": 15 },
+
+    {
+      "id": "hot-1",
+      "role": "hotspot",
+      "text": "Marka i szablony e-mail to singletony globalne — co przy wielu klientach/agencjach?",
+      "x": 480,
+      "y": 565
+    },
+    {
+      "id": "hot-2",
+      "role": "hotspot",
+      "text": "Miesiąc raportu zamrożony z czasu serwera — co z raportem za zaległy miesiąc / inną strefą?",
+      "x": 1160,
+      "y": 560
+    },
+    {
+      "id": "hot-3",
+      "role": "hotspot",
+      "text": "PDF renderowany 3x (on-save, download, send) bez bytu 'wydany raport' — która wersja jest prawdziwa?",
+      "x": 1540,
+      "y": 560
+    },
+    {
+      "id": "hot-4",
+      "role": "hotspot",
+      "text": "Render nieudany → 'zapisano, ale PDF nie' — user wysyła raport bez ważnego PDF?",
+      "x": 1540,
+      "y": 660
+    },
+    {
+      "id": "hot-5",
+      "role": "hotspot",
+      "text": "Wysyłka udana, ale zapis historii padł (race 23505) — e-mail poszedł, wpisu brak. Kto wie, że wysłano?",
+      "x": 2490,
+      "y": 560
+    },
+    {
+      "id": "hot-6",
+      "role": "hotspot",
+      "text": "Odbiorca PM walidowany po e-mailu z formularza; klient brany z projektu — dwie różne ścieżki zaufania",
+      "x": 2300,
+      "y": 660
+    },
+    {
+      "id": "hot-7",
+      "role": "hotspot",
+      "text": "Double-send guard = bucket na minutę UTC. Re-send celowy po błędzie zablokowany na minutę?",
+      "x": 2680,
+      "y": 560
+    },
+    {
+      "id": "hot-8",
+      "role": "hotspot",
+      "text": "Nazwa propozycji pluginu: 'plugins' (DB) vs PluginRow (API) vs 'wiersz' (UI) — jeden byt, trzy nazwy",
+      "x": 1350,
+      "y": 660
+    }
+  ],
+  "updatedAt": "2026-06-11T16:14:47.878Z"
+}
