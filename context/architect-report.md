@@ -7,6 +7,9 @@ type: architect-report
 > Sumaryczny two-pager z modułu 4. Każda sekcja wskazuje repo, na którym powstał artefakt
 > (L2/L3/L4 = legacy `gutenberg`, L5 = `10xdev-project`). Twierdzenia liczbowe i „tylko tutaj"
 > pochodzą z artefaktów, nie z pamięci o kodzie.
+>
+> Cztery artefakty źródłowe: L2/L3/L4 w `context-legacy/` (z repo `gutenberg`), L5 w `context/domain/`
+> — patrz `context-legacy/README.md`.
 
 ## 1. Opisane projekty
 
